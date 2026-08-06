@@ -1,1 +1,16 @@
-knowledge_base/
+.DS_Store
+.env
+.env.*
+!.env.example
+.coverage
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+backups/
+htmlcov/
+media/
+staticfiles/

@@ -1,0 +1,50 @@
+from apps.accounts.models import TeamRoleName
+
+ROLE_PERMISSION_CODENAMES: dict[TeamRoleName, tuple[str, ...]] = {
+    TeamRoleName.VIEWER: (
+        "view_auditevent",
+        "view_pipelinerun",
+        "view_pipelinesteprun",
+        "view_providercall",
+        "view_taskoutbox",
+        "view_dependency_health",
+    ),
+    TeamRoleName.RESEARCHER: (
+        "view_auditevent",
+        "view_pipelinerun",
+        "view_pipelinesteprun",
+        "view_providercall",
+        "view_taskoutbox",
+        "view_dependency_health",
+        "trigger_checkpoint",
+    ),
+    TeamRoleName.REVIEWER: (
+        "view_auditevent",
+        "view_pipelinerun",
+        "view_pipelinesteprun",
+        "view_providercall",
+        "view_taskoutbox",
+        "view_dependency_health",
+        "trigger_checkpoint",
+    ),
+    TeamRoleName.FOUNDER: (
+        "view_auditevent",
+        "view_pipelinerun",
+        "view_pipelinesteprun",
+        "view_providercall",
+        "view_taskoutbox",
+        "view_dependency_health",
+        "trigger_checkpoint",
+        "retry_taskoutbox",
+    ),
+    TeamRoleName.ADMIN: (
+        "view_auditevent",
+        "view_pipelinerun",
+        "view_pipelinesteprun",
+        "view_providercall",
+        "view_taskoutbox",
+        "view_dependency_health",
+        "trigger_checkpoint",
+        "retry_taskoutbox",
+    ),
+}

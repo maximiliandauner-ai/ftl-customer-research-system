@@ -1,0 +1,57 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>{% block title %}FTL Opportunity Intelligence{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=1.0.0">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <a class="brand" href="{% url 'overview' %}" aria-label="FTL overview">
+        <span class="brand-mark" aria-hidden="true">FTL</span>
+        <span><strong>Opportunity</strong><small>Intelligence</small></span>
+      </a>
+      <nav>
+        <a href="{% url 'overview' %}">Overview</a>
+        <span aria-disabled="true">Signal Inbox <small>Later</small></span>
+        <span aria-disabled="true">Companies <small>Later</small></span>
+        <span aria-disabled="true">Opportunities <small>Later</small></span>
+        <span aria-disabled="true">Research <small>Later</small></span>
+        <span aria-disabled="true">Contacts <small>Later</small></span>
+        <span aria-disabled="true">Outreach <small>Later</small></span>
+        <span aria-disabled="true">Knowledge <small>Later</small></span>
+        {% if perms.operations.view_pipelinerun %}
+          <a href="{% url 'operations:index' %}">Operations</a>
+        {% endif %}
+      </nav>
+    </aside>
+    <div class="workspace">
+      <header class="topbar">
+        <div>
+          <span class="environment">Operational workspace</span>
+        </div>
+        <div class="user-menu">
+          <span>{{ request.user.get_username }}</span>
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="button button--quiet" type="submit">Sign out</button>
+          </form>
+        </div>
+      </header>
+      <main id="main-content" tabindex="-1">
+        {% if messages %}
+          <div class="messages" aria-live="polite">
+            {% for message in messages %}<p class="message message--{{ message.tags }}">{{ message }}</p>{% endfor %}
+          </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+</body>
+</html>

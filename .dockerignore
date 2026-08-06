@@ -1,0 +1,15 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+.git
+.mypy_cache
+.pytest_cache
+.ruff_cache
+.venv
+backups
+htmlcov
+media
+staticfiles
+**/__pycache__
+**/*.pyc

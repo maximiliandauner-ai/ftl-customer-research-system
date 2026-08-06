@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Operations · FTL{% endblock %}
+{% block content %}
+<header class="page-header">
+  <div><p class="eyebrow">Operations</p><h1>Durable command center</h1><p class="lede">PostgreSQL state, claims, attempts, ownership, and safe failures—without reading container logs.</p></div>
+  {% if perms.operations.trigger_checkpoint %}<form method="post" action="{% url 'operations:checkpoint-create' %}">{% csrf_token %}{{ checkpoint_form.idempotency_key }}<button class="button button--primary" type="submit">Run integrity checkpoint</button></form>{% endif %}
+</header>
+<nav class="subnav" aria-label="Operations sections">
+  <a href="{% url 'operations:run-list' %}">Pipeline runs</a><a href="{% url 'operations:outbox-list' %}">Task outbox</a><a href="{% url 'operations:audit-list' %}">Audit trail</a>{% if perms.operations.view_dependency_health %}<a href="{% url 'health-dependencies' %}">Dependency health</a>{% endif %}
+</nav>
+<section class="metric-grid" aria-label="Outbox summary">
+  <a class="metric" href="{% url 'operations:outbox-list' %}?status=pending"><span>Pending</span><strong>{{ outbox_counts.pending }}</strong><small>Eligible for claim</small></a>
+  <a class="metric" href="{% url 'operations:outbox-list' %}?status=publishing"><span>Publishing</span><strong>{{ outbox_counts.publishing }}</strong><small>Owned, bounded claims</small></a>
+  <a class="metric" href="{% url 'operations:outbox-list' %}?status=failed"><span>Failed</span><strong>{{ outbox_counts.failed }}</strong><small>Backoff or human retry</small></a>
+  <a class="metric" href="{% url 'operations:outbox-list' %}?status=published"><span>Published</span><strong>{{ outbox_counts.published }}</strong><small>Broker message recorded</small></a>
+</section>
+{% if oldest_unpublished %}<p class="notice"><strong>Oldest unpublished command:</strong> {{ oldest_unpublished.created_at|timesince }} old · {{ oldest_unpublished.command_type }}</p>{% endif %}
+<div class="split-grid">
+  <section class="panel"><div class="panel-heading"><h2>Recent runs</h2><a href="{% url 'operations:run-list' %}">All runs</a></div><div class="table-wrap"><table><thead><tr><th>Pipeline / stage</th><th>Status</th><th>Owner</th><th>Time</th></tr></thead><tbody>{% for run in recent_runs %}<tr><td><a href="{% url 'operations:run-detail' run.id %}">{{ run.pipeline_name }}</a><small>{{ run.stage }}</small></td><td><span class="status status--{{ run.status }}">{{ run.get_status_display }}</span></td><td>{{ run.requested_by|default:"System" }}</td><td>{{ run.created_at|date:"d M, H:i:s" }}</td></tr>{% empty %}<tr><td colspan="4">No pipeline runs.</td></tr>{% endfor %}</tbody></table></div></section>
+  <section class="panel"><div class="panel-heading"><h2>Recent commands</h2><a href="{% url 'operations:outbox-list' %}">Full outbox</a></div><div class="table-wrap"><table><thead><tr><th>Command</th><th>Status</th><th>Attempts</th><th>Available</th></tr></thead><tbody>{% for command in recent_commands %}<tr><td><a href="{% url 'operations:outbox-detail' command.id %}">{{ command.command_type }}</a><small>{{ command.id }}</small></td><td><span class="status status--{{ command.status }}">{{ command.get_status_display }}</span></td><td>{{ command.attempts }}</td><td>{{ command.available_at|date:"d M, H:i:s" }}</td></tr>{% empty %}<tr><td colspan="4">No outbox commands.</td></tr>{% endfor %}</tbody></table></div></section>
+</div>
+{% endblock %}
+

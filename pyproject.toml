@@ -1,0 +1,87 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ftl-opportunity-intelligence"
+version = "0.1.0"
+description = "FTL Opportunity Intelligence & Outreach Platform"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+license = { file = "LICENSE.md" }
+dependencies = [
+  "celery[redis]==5.6.3",
+  "Django[argon2]==5.2.17",
+  "django-celery-beat==2.9.0",
+  "django-csp==4.0",
+  "gunicorn==26.0.0",
+  "psycopg[binary]==3.3.4",
+  "pydantic==2.13.4",
+  "pydantic-settings==2.14.2",
+  "whitenoise==6.12.0",
+]
+
+[dependency-groups]
+dev = [
+  "detect-secrets==1.5.0",
+  "django-stubs==5.2.9",
+  "mypy==2.3.0",
+  "pytest==9.1.1",
+  "pytest-cov==7.1.0",
+  "pytest-django==4.12.0",
+  "ruff==0.16.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["apps", "config", "domain"]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+extend-exclude = ["docs/ftl-opportunity-intelligence"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "C4", "DJ", "PT", "RUF", "S", "SIM", "UP"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"config/settings/*.py" = ["F403", "F405"]
+"apps/*/migrations/*.py" = ["RUF012"]
+"apps/*/models.py" = ["RUF012"]
+"tests/**/*.py" = ["S105", "S106"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+addopts = "--strict-config --strict-markers --disable-warnings --maxfail=1"
+markers = [
+  "integration: requires the PostgreSQL service",
+  "e2e: end-to-end HTTP behavior",
+  "live_provider: requires explicit provider credentials and budget",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["apps", "config", "domain"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 80
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+plugins = ["mypy_django_plugin.main"]
+exclude = ["docs/", "tests/"]
+
+[[tool.mypy.overrides]]
+module = ["celery", "celery.*", "kombu", "kombu.*", "django_celery_beat", "django_celery_beat.*"]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings.test"

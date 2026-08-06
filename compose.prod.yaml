@@ -1,0 +1,51 @@
+services:
+  migrate:
+    image: ${APP_IMAGE:?Set APP_IMAGE to an immutable release tag or digest}
+    build: !reset null
+
+  web:
+    image: ${APP_IMAGE:?Set APP_IMAGE to an immutable release tag or digest}
+    build: !reset null
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+
+  worker-core:
+    image: ${APP_IMAGE:?Set APP_IMAGE to an immutable release tag or digest}
+    build: !reset null
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+
+  worker-research:
+    image: ${APP_IMAGE:?Set APP_IMAGE to an immutable release tag or digest}
+    build: !reset null
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+
+  beat:
+    image: ${APP_IMAGE:?Set APP_IMAGE to an immutable release tag or digest}
+    build: !reset null
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+
+  proxy:
+    ports: !reset
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:?Set PUBLIC_DOMAIN}
+    volumes: !reset
+      - ./docker/Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+
+volumes:
+  caddy_data:
+  caddy_config:

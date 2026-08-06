@@ -1,0 +1,34 @@
+services:
+  web:
+    command: ["./scripts/start-web-dev.sh"]
+    volumes:
+      - .:/app
+      - media_data:/app/media
+    ports:
+      - "127.0.0.1:${DJANGO_DEV_PORT:-8001}:8000"
+
+  worker-core:
+    volumes:
+      - .:/app
+      - media_data:/app/media
+
+  worker-research:
+    volumes:
+      - .:/app
+      - media_data:/app/media
+
+  beat:
+    volumes:
+      - .:/app
+
+  postgres:
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
+
+  redis:
+    ports:
+      - "127.0.0.1:${REDIS_HOST_PORT:-6379}:6379"
+
+  quality:
+    volumes:
+      - .:/app

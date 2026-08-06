@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Audit trail · FTL{% endblock %}
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Operations / Audit</p><h1>Append-only audit trail</h1><p class="lede">Actor, reason, object, request correlation, and bounded state summaries.</p></div></header>
+<form class="filter-bar" method="get"><label for="action">Exact action</label><input id="action" name="action" value="{{ selected_action }}" maxlength="160" placeholder="operations.checkpoint_completed"><button class="button" type="submit">Apply</button></form>
+<section class="panel"><div class="table-wrap"><table><thead><tr><th>Time</th><th>Action</th><th>Object</th><th>Actor</th><th>Reason</th><th>Request</th></tr></thead><tbody>{% for event in page_obj %}<tr><td>{{ event.occurred_at|date:"d M Y, H:i:s" }}</td><td><strong>{{ event.action }}</strong></td><td>{{ event.object_type }}<small><code>{{ event.object_id }}</code></small></td><td>{{ event.actor_type }}<small>{{ event.actor_id|default:"System" }}</small></td><td>{{ event.reason_key|default:"—" }}</td><td><code>{{ event.request_id|default:"—" }}</code></td></tr>{% empty %}<tr><td colspan="6">No audit events match this view.</td></tr>{% endfor %}</tbody></table></div>{% include "operations/pagination.html" %}</section>
+{% endblock %}
+

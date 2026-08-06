@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Access denied · FTL{% endblock %}
+{% block content %}
+<section class="empty-state">
+  <p class="eyebrow">403 · Permission required</p>
+  <h1>This workspace is outside your current role.</h1>
+  <p>Your identity is authenticated, but the requested action requires a different FTL permission. The server enforced this boundary.</p>
+  <a class="button button--primary" href="{% url 'overview' %}">Return to overview</a>
+</section>
+{% endblock %}
+

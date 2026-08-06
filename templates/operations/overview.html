@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Overview · FTL{% endblock %}
+{% block content %}
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Overview</p>
+    <h1>Opportunity control room</h1>
+    <p class="lede">The foundation is online. Durable work and human decisions stay visible here.</p>
+  </div>
+  {% if perms.operations.trigger_checkpoint %}
+  <form method="post" action="{% url 'operations:checkpoint-create' %}">
+    {% csrf_token %}{{ checkpoint_form.idempotency_key }}
+    <button class="button button--primary" type="submit">Run integrity checkpoint</button>
+  </form>
+  {% endif %}
+</header>
+
+<section class="metric-grid" aria-label="Operational summary">
+  <a class="metric" href="{% url 'operations:run-list' %}?status=running"><span>Active runs</span><strong>{{ active_run_count }}</strong><small>Queued, running, or waiting</small></a>
+  <a class="metric" href="{% url 'operations:outbox-list' %}?status=pending"><span>Outbox in flight</span><strong>{{ pending_outbox_count }}</strong><small>Canonical PostgreSQL commands</small></a>
+  <a class="metric metric--risk" href="{% url 'operations:outbox-list' %}?status=failed"><span>Failed commands</span><strong>{{ failed_outbox_count }}</strong><small>Safe context available</small></a>
+</section>
+
+<div class="split-grid">
+  <section class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Pipeline</p><h2>Recent runs</h2></div><a href="{% url 'operations:run-list' %}">View all</a></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Run</th><th>Status</th><th>Owner</th><th>Created</th></tr></thead>
+      <tbody>{% for run in recent_runs %}<tr><td><a href="{% url 'operations:run-detail' run.id %}">{{ run.pipeline_name }}</a><small>{{ run.stage }}</small></td><td><span class="status status--{{ run.status }}">{{ run.get_status_display }}</span></td><td>{{ run.requested_by|default:"System" }}</td><td><time datetime="{{ run.created_at|date:'c' }}" title="{{ run.created_at|date:'c' }}">{{ run.created_at|date:"d M, H:i" }}</time></td></tr>{% empty %}<tr><td colspan="4">No runs yet. Start an integrity checkpoint to exercise the durable path.</td></tr>{% endfor %}</tbody></table>
+    </div>
+  </section>
+  <section class="panel">
+    <div class="panel-heading"><div><p class="eyebrow">Audit</p><h2>Recent decisions</h2></div><a href="{% url 'operations:audit-list' %}">View trail</a></div>
+    <ol class="timeline">{% for event in recent_audit %}<li><span class="timeline-dot" aria-hidden="true"></span><div><strong>{{ event.action }}</strong><p>{{ event.object_type }} · {{ event.reason_key|default:"recorded" }}</p><time datetime="{{ event.occurred_at|date:'c' }}">{{ event.occurred_at|date:"d M, H:i:s" }}</time></div></li>{% empty %}<li>No audit events yet.</li>{% endfor %}</ol>
+  </section>
+</div>
+{% endblock %}
+
