@@ -20,6 +20,13 @@ class CheckpointPayloadV1(BaseModel):
     pipeline_run_id: UUID
 
 
+class TargetCommandPayloadV1(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    pipeline_run_id: UUID
+    object_id: UUID
+
+
 class TaskEnvelopeV2(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 

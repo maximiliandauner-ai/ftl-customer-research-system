@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Solutions · FTL{% endblock %}
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Evidence-bound hypotheses</p><h1>Solution versions</h1><p class="lede">No-web, phased FTL solution hypotheses and downstream externally safe asset matches.</p></div></header>
+<section class="panel"><div class="table-wrap"><table><thead><tr><th>Company / version</th><th>Offer</th><th>Layers</th><th>Assets</th><th>Research / knowledge</th></tr></thead><tbody>{% for solution in page_obj %}<tr><td><a href="{% url 'solutions:detail' solution.id %}">{{ solution.opportunity.company.name }} · v{{ solution.version }}</a><small>{{ solution.generator_method }}</small></td><td>{{ solution.entry_offer.key }}</td><td>{{ solution.structured_output.ftl_layers|join:", " }}</td><td>{% if solution.asset_match %}{{ solution.asset_match.selections.count }}{% else %}Pending{% endif %}</td><td>research v{{ solution.research_run.version }} / knowledge v{{ solution.knowledge_release.version }}</td></tr>{% empty %}<tr><td colspan="5">No solution has been designed.</td></tr>{% endfor %}</tbody></table></div></section>
+{% endblock %}

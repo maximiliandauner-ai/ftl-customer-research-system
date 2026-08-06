@@ -5,13 +5,16 @@ BASE_COMPOSE = ENV_FILE=$(ENV_FILE) docker compose --env-file $(ENV_FILE) -f com
 DEV_COMPOSE = $(BASE_COMPOSE) -f compose.dev.yaml
 QUALITY_RUN = $(DEV_COMPOSE) --profile quality run --rm --no-deps --build quality
 
-.PHONY: backup bootstrap bootstrap-data check-deploy check-docs check-migrations compose-config destroy \
+.PHONY: backup bootstrap bootstrap-contact-keys bootstrap-data check-deploy check-docs check-migrations compose-config destroy \
 	down django-shell format lint logs makemigrations migrate persistence-check restore \
 	restore-drill secret-scan shell test test-e2e test-integration typecheck up verify
 
 bootstrap:
 	python3 scripts/bootstrap_env.py
 	ENV_FILE=.env docker compose --env-file .env -f compose.yaml -f compose.dev.yaml build
+
+bootstrap-contact-keys:
+	python3 scripts/bootstrap_env.py --fill-missing-contact-keys
 
 up:
 	@test -f .env || (echo "Run 'make bootstrap' first." >&2; exit 1)

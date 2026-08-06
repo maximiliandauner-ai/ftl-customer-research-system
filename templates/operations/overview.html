@@ -5,7 +5,7 @@
   <div>
     <p class="eyebrow">Overview</p>
     <h1>Opportunity control room</h1>
-    <p class="lede">The foundation is online. Durable work and human decisions stay visible here.</p>
+    <p class="lede">Public-source ingestion is online. Durable work, provenance, failures, and human decisions stay visible here.</p>
   </div>
   {% if perms.operations.trigger_checkpoint %}
   <form method="post" action="{% url 'operations:checkpoint-create' %}">
@@ -19,6 +19,12 @@
   <a class="metric" href="{% url 'operations:run-list' %}?status=running"><span>Active runs</span><strong>{{ active_run_count }}</strong><small>Queued, running, or waiting</small></a>
   <a class="metric" href="{% url 'operations:outbox-list' %}?status=pending"><span>Outbox in flight</span><strong>{{ pending_outbox_count }}</strong><small>Canonical PostgreSQL commands</small></a>
   <a class="metric metric--risk" href="{% url 'operations:outbox-list' %}?status=failed"><span>Failed commands</span><strong>{{ failed_outbox_count }}</strong><small>Safe context available</small></a>
+</section>
+
+<section class="metric-grid" aria-label="Ingestion summary">
+  <a class="metric" href="{% url 'companies:list' %}"><span>Companies</span><strong>{{ company_count }}</strong><small>Canonical and provisional identities</small></a>
+  <a class="metric" href="{% url 'sources:index' %}"><span>Source artifacts</span><strong>{{ source_artifact_count }}</strong><small>Immutable storage-backed bodies</small></a>
+  <a class="metric metric--risk" href="{% url 'sources:index' %}?status=rejected"><span>Source attention</span><strong>{{ source_attention_count }}</strong><small>Rejected or unsafe candidates</small></a>
 </section>
 
 <div class="split-grid">
@@ -35,4 +41,3 @@
   </section>
 </div>
 {% endblock %}
-

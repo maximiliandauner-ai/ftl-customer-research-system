@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Source artifact · FTL{% endblock %}
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Immutable artifact</p><h1>{{ artifact.sha256|slice:":20" }}…</h1><p class="lede">Metadata and integrity are inspectable. The untrusted raw body is deliberately not rendered or exposed.</p></div><span class="tag">{{ artifact.get_retention_class_display }}</span></header>
+<section class="notice"><strong>Raw source isolation</strong><p>This page exposes provenance only. Connector parsing reads the storage object in a worker; templates never receive its bytes.</p></section>
+<dl class="detail-grid"><div><dt>Artifact ID</dt><dd><code>{{ artifact.id }}</code></dd></div><div><dt>Endpoint</dt><dd><a href="{% url 'sources:endpoint-detail' artifact.source_endpoint.id %}">Inspect endpoint</a></dd></div><div><dt>SHA-256</dt><dd><code>{{ artifact.sha256 }}</code></dd></div><div><dt>Size</dt><dd>{{ artifact.size_bytes|filesizeformat }}</dd></div><div><dt>Content type</dt><dd>{{ artifact.content_type }}</dd></div><div><dt>Encoding</dt><dd>{{ artifact.encoding|default:"Unknown" }}</dd></div><div><dt>Retrieved</dt><dd>{{ artifact.retrieved_at|date:"c" }}</dd></div><div><dt>Storage key</dt><dd><code>{{ artifact.storage_key }}</code></dd></div></dl>
+{% endblock %}

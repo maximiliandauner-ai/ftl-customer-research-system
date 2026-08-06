@@ -1,0 +1,12 @@
+[
+  {
+    "id": "lever-role-1",
+    "text": "Creative Operations Manager",
+    "hostedUrl": "https://jobs.lever.co/acme/lever-role-1",
+    "applyUrl": "https://jobs.lever.co/acme/lever-role-1/apply",
+    "descriptionPlain": "Build a scalable creative operations practice.",
+    "categories": {"location": "New York", "commitment": "Full-time", "team": "Brand", "department": "Marketing"},
+    "lists": [{"text": "What you will do", "content": "<ul><li>Own workflows</li><li>Coordinate partners</li></ul>"}],
+    "additional": "<p>We welcome thoughtful operators.</p>"
+  }
+]

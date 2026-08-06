@@ -1,165 +1,114 @@
 # Implementation Plan
 
-**Selected milestone:** 1 — Accounts, audit, operations, and transactional outbox  
-**Visible outcome:** Authenticated, role-aware operators can inspect a dark operational workspace, create a durable checkpoint command, observe its pipeline/audit/outbox records, and safely retry an eligible publication. Database commits survive broker publication failure, stale claims recover, and duplicate delivery cannot duplicate the domain effect.  
-**Plan opened:** 2026-08-05  
-**Predecessor:** Milestone 0 verified on 2026-08-05
+**Selected milestone:** 11 — Buyer roles and public/human contact routes  
+**Visible outcome:** An approved current solution and completed asset match can produce evidence-bound buyer-role categories, scan only registered official public sources through the SSRF-safe fetcher for explicitly published contact routes, preserve encrypted route values and exact provenance, and require separate human eligibility/legal review and exact target selection. Buyer roles, people, observations, routes, deliverability, suppression, and recommendation remain independent. Email drafting and sending remain out of scope.  
+**Plan opened:** 2026-08-06  
+**Predecessor:** Milestone 10 verified on 2026-08-06
 
 ## Relevant specifications
 
-- `AGENTS.md`
-- `docs/ftl-opportunity-intelligence/README.md`
-- `docs/ftl-opportunity-intelligence/06_DATABASE_SCHEMA_AND_MIGRATIONS.md`
-- `docs/ftl-opportunity-intelligence/07_DOMAIN_STATES_AND_AUDIT_TRAIL.md`
+- `docs/ftl-opportunity-intelligence/16_CONTACT_DISCOVERY_AND_VERIFICATION.md`
+- `docs/ftl-opportunity-intelligence/18_SOLUTION_DESIGN_AGENT.md`
 - `docs/ftl-opportunity-intelligence/23_DASHBOARD_UX_SPECIFICATION.md`
-- `docs/ftl-opportunity-intelligence/24_CELERY_ORCHESTRATION_AND_SCHEDULING.md`
-- `docs/ftl-opportunity-intelligence/26_OBSERVABILITY_AND_OPERATIONS.md`
 - `docs/ftl-opportunity-intelligence/27_SECURITY_PRIVACY_AND_COMPLIANCE.md`
+- `docs/ftl-opportunity-intelligence/24_CELERY_ORCHESTRATION_AND_SCHEDULING.md`
 - `docs/ftl-opportunity-intelligence/28_TESTING_EVALUATION_AND_QUALITY_GATES.md`
-- `docs/ftl-opportunity-intelligence/30_CODEX_IMPLEMENTATION_ROADMAP.md`
-- `docs/ftl-opportunity-intelligence/32_ARCHITECTURE_AUDIT_AND_DECISIONS.md`
+- `docs/ftl-opportunity-intelligence/33_AGENT_PROMPT_ENGINEERING_STANDARD.md`
+- binding corrections in `32_ARCHITECTURE_AUDIT_AND_DECISIONS.md`
 
 ## Repository findings
 
-- Milestone 0 has executed its aggregate Docker verification, persistence check, backup, and isolated restore drill. The development stack is healthy and PostgreSQL contains 39 framework/Beat migrations.
-- No project-owned database model currently exists. `apps.operations` is an empty ownership boundary and the root route exposes only health/admin paths.
-- The existing database was initialized with Django's built-in `auth.User`. Replacing it after framework migrations would create an unsafe migration dependency transition; milestone 1 will preserve it and add an FTL-owned `TeamRole` relation and seeded Django groups/permissions.
-- No broker publication occurs from application transactions. This milestone can introduce the outbox without a compatibility shim or competing legacy path.
-- The branch remains `main`; the pre-existing dirty and untracked user files are preserved. No destructive database reset, volume removal, or migration rewrite is authorized.
-- `django-csp` 4.0 is the current stable release supporting Django 5.2/Python 3.13 and will provide the application CSP middleware.
+- Milestone 10 is verified by the complete Docker gate: 152 unit tests at 80.59% coverage, 13 PostgreSQL integration tests, 9 real-HTTP E2E tests, clean Ruff/mypy/migrations/deployment/Compose/docs/secrets. Versioned knowledge, solution hypotheses, and zero-to-two safe asset matching are durable and email remains absent.
+- The current live opportunity is research eligible, not solution-approved, because live OpenAI calls were not authorized. Deterministic fixtures can exercise the entire milestone-11 precondition chain without provider egress.
+- Contact-route encryption/HMAC environment names already exist, but runtime loading, key validation, cryptography, contact models/services/tasks/routes, buyer-role inference, public route scanning, human route provenance, suppression, review, and selection do not exist.
+- Standard research intentionally excludes named contacts/final buyers. Milestone 11 must derive role categories only from the approved solution and may scan only exact registered official sources; it may return no person and no route rather than guess.
 
-## Milestone ownership
+## Owned implementation
 
-### Django models and migrations
-
-- `accounts.TeamRole`: one active FTL role (`admin`, `founder`, `researcher`, `reviewer`, or `viewer`) per Django user, with group-backed permissions and retained historical user identity.
-- `operations.PipelineRun` and `PipelineStepRun`: canonical queued/running/completed/failed progress, correlation, heartbeat, safe context, version, and idempotent step effect.
-- `operations.TaskOutbox`: unique command key, small JSON payload, explicit claim/publication/retry state, broker message ID, safe error, owner, and timestamps, indexed by eligibility.
-- `operations.ProviderCall`: append-oriented provider operation/cost/status shell only; it performs no provider call in this milestone.
-- `operations.AuditEvent`: append-only actor/action/object summaries and request/run correlation. PostgreSQL triggers reject update/delete in addition to application guards.
-- One fresh-install-compatible migration per new app, plus a conditional PostgreSQL audit immutability trigger. No data deletion or existing migration edit.
-
-### Pydantic contracts and services
-
-- Strict `TaskEnvelopeV2` and checkpoint-command contracts carry UUIDs/scalars only and reject extra/large/untrusted payload state.
-- A transactional service creates the pipeline run, audit event, and unique outbox row together; duplicate requests return the same records.
-- A bounded dispatcher claims with `select_for_update(skip_locked=True)`, publishes outside the transaction, records broker IDs, applies deterministic backoff, and safely recovers stale claims.
-- The idempotent consumer locks the canonical run, creates one unique step effect, transitions it once, and writes one completion audit event. Duplicate delivery becomes a no-op.
-- Role assignment and outbox retry use audited transactional services; views never mutate audited statuses directly.
-
-### Celery tasks, queues, and schedules
-
-- `operations.dispatch_outbox` and stale-claim recovery run on `maintenance`; the checkpoint consumer uses late acknowledgment, worker-loss rejection, short limits, ignored results, and the strict envelope.
-- `bootstrap_ftl_platform` idempotently seeds the five groups/permissions and database-backed dispatch/recovery schedules. It creates no user or password and keeps all provider policies disabled.
-- The only domain-to-broker path is the dispatcher. Celery task arguments contain the envelope of IDs/scalars; PostgreSQL remains canonical and results stay disabled.
-
-### Routes, templates, and static assets
-
-- `/accounts/login/` and logout use Django authentication; all product/operations pages require login and permission checks, with explicit 403 handling.
-- `/` provides the restrained dark overview shell with operations health/backlog and recent decisions; `/operations/`, `/operations/runs/`, `/operations/outbox/`, and `/operations/audit/` expose server-filtered durable state.
-- POST-only checkpoint creation and eligible outbox retry work without JavaScript, include CSRF, preserve request correlation, and surface success/error messages.
-- `/health/dependencies` is authenticated and permissioned; public liveness/readiness remain minimal.
-- Tokenized CSS supplies semantic tables, visible focus, 44px targets, contrast, status text/shapes, responsive layout, and reduced-motion support. No raw external HTML is rendered.
-
-### Settings and middleware
-
-- Request-correlation middleware accepts only bounded UUID request IDs, generates one otherwise, returns it in `X-Request-ID`, and supplies structured-log context.
-- `django-csp` applies a self-only policy with scripts/objects/frames blocked; standard Django CSRF, clickjacking, secure production cookies, Argon2, and deployment checks remain active.
-- Safe structured logs add service/event/correlation fields from an allowlist and never serialize arbitrary payloads or secrets.
+- Add a `contacts` app owning immutable buyer-role results/hypotheses, public fetch artifacts/evidence, person role observations, and selection history plus independently mutable route state and append-only suppression entries.
+- Add strict Pydantic v2 `BuyerRoleResultV2` and `ContactRouteResultV2` contracts. Deterministically infer role categories from the exact approved solution requirements and validated evidence IDs; never emit people, addresses, reporting lines, or routes from role inference.
+- Add bounded ID-only `contacts.infer_roles` and per-source `contacts.scan_source` continuations on `contact_enrichment`. Select only current research sources classified official-company and matching a verified/observed company domain; fetch via the existing pinned SSRF-safe adapter, store immutable artifacts/hashes, and never render raw HTML.
+- Extract only literal `mailto:`, `tel:`, form actions, contact links, and allowed professional-profile URLs with exact source/evidence spans. Encrypt email/phone/human values with an AEAD key, deduplicate/suppress via a separate keyed HMAC, and fail closed when keys are unavailable.
+- Add explicit human-origin route creation with actor/provenance, route eligibility/legal review, suppression checks, and exact solution/buyer-role/route selection. Public extraction can only create `public_source` routes with deliverability `unknown` and eligibility `unreviewed`.
+- Add authenticated contact workspaces to company/opportunity pages with provenance, origin, freshness, observation, deliverability, eligibility, legal status, row version, and audit visibility; do not create packets, drafts, or sends.
 
 ## Implementation steps
 
-1. Add the accounts/operations models, constraints, admin views, migrations, contracts, request context, and bootstrap command.
-2. Implement transactional command creation, safe outbox claim/publish/failure/recovery, idempotent consumer execution, audited retry, and Celery schedules.
-3. Implement authenticated overview/operations pages, forms, filters, dependency health, permission handling, templates, and accessible tokenized styling.
-4. Add unit tests for contracts, authorization, CSRF, middleware, services, failure/backoff/recovery, duplicate delivery, audit immutability, bootstrap idempotency, and UI rendering.
-5. Add PostgreSQL integration tests for concurrent-safe eligibility, transaction rollback, unique idempotency, broker-failure durability, duplicate effects, and the audit trigger; extend browser-level E2E through login and checkpoint creation.
-6. Run and fix the full Docker quality interface, migrate the live non-destructively, bootstrap policy data, verify worker dispatch/recovery and UI state, then repeat backup/isolated restore checks for the expanded schema.
-7. Record exact evidence in this file and `IMPLEMENTATION_STATUS.md`; add only the built-in-user and outbox claim design decisions to `DECISIONS.md`.
+1. Add contact crypto/runtime settings, strict contracts, models, permissions/admin, additive migrations, constraints, and PostgreSQL immutability triggers.
+2. Implement approved-solution-bound role inference and transactional outbox continuation to one command per eligible registered official source.
+3. Implement bounded safe fetch, immutable storage artifact/evidence registration, literal route extraction, normalization/encryption/HMAC deduplication, terminal/failure handling, and replay safety.
+4. Implement authorized human routes, independent route review/legal status, synchronous suppression, and exact human target selection with audit history.
+5. Build company/opportunity contact pages and test role-only/no-route, literal form/mailto, guessed-address rejection, hostile HTML, human-origin restrictions, crypto-at-rest, duplicate HMAC, stale/independent states, suppression, PostgreSQL triggers, and real-HTTP flow.
 
 ## Failure, retry, security, migration, and rollback
 
-- A broker exception never rolls back the already-committed domain record; it stores only a stable error code and bounded/redacted message, increments attempts, and advances `available_at` using capped backoff.
-- Claim ownership prevents a late dispatcher from overwriting another recovery attempt. Publication-before-database-ack may duplicate a message by design; the unique step idempotency key makes the consumer effect exactly once.
-- Unknown command types, invalid envelopes, canceled rows, exhausted retries, and non-retryable states fail visibly without blind publication. Manual retry is role-restricted, state-checked, audited, and never changes the idempotency key.
-- Audit records are reference/hash summaries only. Model/application guards and a PostgreSQL trigger make them append-only. Errors, UI, and logs omit secrets, raw payloads, cookies, and provider bodies.
-- `TeamRole` does not delete or rewrite `auth.User`; deactivation preserves authorship. Role mutation is transactional and group synchronized.
-- Migrations are additive and reversible: dropping new tables/trigger is technically possible only through an explicit migration rollback. Normal rollback uses the previous application image while leaving additive tables intact; no automated destructive rollback runs.
-- Provider calls and external outreach remain disabled. No legal conclusion, contact route, suppression exception, provider credential, or live model behavior is introduced.
-- Backup/restore validation follows the schema migration; the existing backup remains untouched.
+- Route scans use registered source IDs only, revalidate DNS and every redirect, pin approved addresses, bound content/time/bytes, persist hashes/artifacts, and never display raw HTML. Source failure is explicit and cannot create a route.
+- Sensitive values never enter Celery payloads/logs/errors and are encrypted before database persistence. Separate keys and key IDs support future rotation; missing/invalid keys block route creation safely.
+- Role and scan commands are idempotent/retry-safe. Every extracted route retains exact evidence; repeat observations update bounded freshness state without duplicating immutable evidence/history.
+- Suppression is synchronous before eligibility and selection. Public extraction cannot approve, verify deliverability, or create warm/existing/event routes. Only permissioned human services may review/select.
+- Migrations are additive. Rollback disables new routes/tasks while retaining encrypted routes and immutable evidence/history. No live model call, packet, email generation, or sending is part of this milestone.
 
-## Validation commands and stopping condition
+## Validation and stopping condition
 
-Run inside Docker through the Make interface unless the command validates Compose itself:
+Run `make format`, `make lint`, `make typecheck`, migration/deploy checks, unit/integration/E2E suites, Compose/docs/secret gates, and final `make verify` inside Docker. Apply migrations once through the release service, rebuild/restart the shared image, execute deterministic approved-solution and safe-fetch fixtures without provider/model egress, verify workers/health, and inspect the workspace.
 
-```text
-make format
-make lint
-make typecheck
-make check-migrations
-make check-deploy
-make test
-make test-integration
-make test-e2e
-make compose-config
-make check-docs
-make secret-scan
-make verify
-make migrate
-make bootstrap-data
-make up
-curl --fail http://127.0.0.1:8000/health/live
-curl --fail http://127.0.0.1:8000/health/ready
-make backup
-make restore-drill FILE=<new backup>
-```
+Stop only when role-only inference is exact-solution/evidence-bound; public route extraction can persist only literal source-backed routes; human-origin routes require actor/provenance; encrypted value, HMAC, observation, freshness, deliverability, eligibility, legal review, recommendation, and suppression remain independent; exact human selection is required; email remains absent; the application is runnable; and every Docker gate passes.
 
-Stop at a clean verified milestone 1 checkpoint only when the full Docker quality suite passes and executed tests prove: role-aware authentication/403/CSRF; atomic run/audit/outbox creation and rollback; durable broker failure plus later publication; safe stale recovery; duplicate delivery with one step/audit effect; append-only PostgreSQL audit enforcement; idempotent bootstrap/schedules; operations UI visibility of status, attempts, error, owner, correlation, and timestamps; fresh migrations and non-destructive upgrade; healthy live stack; expanded backup integrity and isolated restore. Live OpenAI/provider calls remain intentionally disabled.
+## Verified Milestone 11 checkpoint
 
-## Milestone 1 results
+- Added strict buyer-role/contact contracts and a dedicated contact domain. An approved exact solution with a completed asset match queues deterministic, evidence-bound role hypotheses, then one short `contacts.scan_source` command per eligible registered official-company source. Role inference never emits a person or route, and a complete zero-route result is valid.
+- Official-source scans reuse the controlled-DNS, address-pinned, redirect-revalidating SSRF-safe fetcher. Parsing removes inactive/executable markup and accepts only literal `mailto:`, `tel:`, form-action, and contact-link observations. It cannot infer a likely address, a warm introduction, or an existing relationship.
+- Raw contact source bodies, sensitive exact evidence fragments, and email/phone/human route values are AES-256-GCM encrypted before storage. A separate keyed HMAC supports deduplication and synchronous suppression without exposing the route; key IDs, masked displays, hashes, retrieval times, offsets, and immutable artifact/evidence provenance remain durable.
+- Added separately reviewed route origin, observation, freshness, deliverability, outreach eligibility, legal status, recommendation, suppression, and exact opportunity selection state. Human-origin routes require an authorized actor and provenance. Selection requires an eligible, legally approved, unsuppressed route and creates no packet, draft, email, or send.
+- Additive `contacts` migrations 0001–0002 were applied once through the rebuilt release image. PostgreSQL triggers reject buyer-role/evidence mutation or deletion. The shared web, worker, Beat, and proxy services restarted healthy with the new image.
+- Final aggregate `make verify` exited 0: 294 files were formatted/Ruff clean; strict mypy passed across 220 source files; migration drift and production deployment checks passed; 158 unit tests passed at 80.06% coverage; 14 PostgreSQL integration tests and 10 real-HTTP E2E tests passed; Compose, document-link, and secret gates were clean. No live provider call or live contact-source scan was performed; deterministic fixtures exercised the complete safe-fetch path.
 
-Milestone 1 reached its verified stopping condition on 2026-08-05.
+## Verified Milestone 10 checkpoint
 
-- Added Django `TeamRole`, five group-backed role policies, audited role assignment, and idempotent policy/schedule bootstrap without creating an operator or credential.
-- Added `PipelineRun`, `PipelineStepRun`, `TaskOutbox`, `ProviderCall`, and append-only `AuditEvent`; migrations `accounts.0001`, `operations.0001`, and `operations.0002` upgraded the live PostgreSQL database non-destructively from 39 to 42 migration records.
-- Added strict Pydantic v2 checkpoint/envelope contracts, atomic service writes, bounded concurrent-safe claims, publish-after-lock-release, safe retry/backoff, stale recovery, audited manual retry, and an idempotent late-acknowledged Celery consumer.
-- Added authenticated and permissioned overview/run/outbox/audit/dependency pages, CSRF-only state changes, request correlation, CSP, WhiteNoise static delivery, and a responsive accessible dark workspace.
-- Corrected two issues found only in live verification: all Compose application services now share the same locally built immutable image; Celery exchanges use versioned `ftl.v1.*` names so obsolete non-destructively retained Redis bindings cannot multiply delivery. ADR-004 records the queue policy.
-- `make format`, `make lint`, `make typecheck`, `make check-migrations`, `make check-deploy`, `make test`, `make test-integration`, `make test-e2e`, and `make compose-config` each exited 0. Results were 88 Ruff-formatted files, no lint issues, no mypy issues in 57 source files, no migration drift, no deployment findings, 61 passing unit tests at 89.68% branch coverage, 4 passing PostgreSQL integration tests, and 2 passing HTTP E2E tests.
-- `make check-docs` passed with every local Markdown link resolved. The first secret scan correctly flagged a password-shaped E2E fixture; the fixture now generates a per-test credential, and the final `make secret-scan` passed with no findings.
-- Final aggregate `make verify` exited 0 after executing lint, type checking, migration/deployment checks, all three test suites, Compose policy, documentation links, and secret scanning.
-- Browser QA verified styled authenticated desktop/mobile flows, no overflow at 390 px, visible keyboard focus, no console warnings/errors, and a UI-created checkpoint progressing to complete/published. The fixture user was deactivated and its password made unusable afterward.
-- A final live system checkpoint (`219e7d5e-12d0-4f31-ace9-07f9927dfbde`) completed with one outbox attempt, one broker receipt, one step, and one completion audit. Liveness, readiness (including storage), and CSS delivery returned HTTP 200.
-- After aggregate verification and its service recreation, `make up` completed with no pending migrations; both workers answered `pong`, PostgreSQL/Redis/web were healthy, Beat and Caddy were running, and the application remained available at `http://127.0.0.1:8000`.
-- `make persistence-check` retained 42 migration records. `make backup` produced `backups/20260805T155046Z/` with a 75,878-byte database dump and valid checksums; its isolated PostgreSQL 18 restore drill passed with all 42 migrations.
-- No live provider call was performed. OpenAI, external fetching, contact/email features, and first-contact sending remain disabled.
+- Added strict editorial contracts and an append-only knowledge release registry for offers, approved/prohibited claims, and assets. Sync and activation are separate operations; activation records the actor, reason, prior release, current release, and invalidates dependent current solutions without deleting history.
+- Added immutable solution versions, phases, exact research/knowledge/input hashes, editable version replacement, exact approval binding, and a downstream asset-match record. Python validates every evidence/claim/offer reference and applies public-status, external-approval, confidentiality, audience, language, review-freshness, and URL-health filters before selecting at most two assets.
+- The checked-in starter release contains one reviewed offer module and intentionally empty claim/asset catalogs. Empty catalogs and a valid zero-asset match are first-class outcomes; the implementation invents no FTL proof or downloadable asset.
+- Added ID-only `solutions.design` and `solutions.match_assets` outbox commands on dedicated queues, durable run/step/audit state, replay-safe domain effects, and authenticated release, asset, solution, and opportunity workspaces. No draft or email record is created.
+- Additive migrations `knowledge` 0001–0002 and `solutions` 0001–0002 were applied once through the rebuilt release image. PostgreSQL triggers reject mutation/deletion of immutable knowledge and solution records.
+- Docker checkpoint results before the final aggregate gate: focused M10 tests 5 unit, 1 PostgreSQL, and 1 real-HTTP test passed; full `make test` 151 passed at 80.18% coverage; `make test-integration` 13 passed; `make test-e2e` 9 passed. No live provider call was made.
 
-The next milestone is 2 — Companies, sources, artifacts, and safe manual ingestion — governed by specifications `06`, `09`, `10`, `23`, and `27`.
+## Verified Milestone 9 checkpoint
 
-## Milestone 0 verified checkpoint
+- Docker checkpoint commands passed: migration drift clean; `make test` 146 passed at 81.14% coverage; `make test-integration` 12 PostgreSQL tests passed; `make test-e2e` 8 real-HTTP tests passed.
+- Additive migrations `opportunities` 0003 and `research` 0001–0002 are applied once through the rebuilt release image. PostgreSQL rejects mutation/deletion of registered reports, sources, claims, claim links, evidence links, and dossiers.
+- The central adapter uses `responses.create` for the cited web report and a separate `responses.parse` Structured Output call with no tools for extraction. Immutable active policies own model/tool/reasoning/budget/retention configuration.
+- A research request atomically records brief/public input hashes, pipeline/outbox/audit state, then registers provider-derived `SRC-` IDs before accepting `CLM-` claims bound only to supplied sources, signals, and evidence. Python renders and hashes the canonical dossier.
+- Disabled-provider, fabricated-source, partial-report preservation, duplicate delivery, private-context isolation, source integrity, PostgreSQL immutability, permissions, and real-HTTP research pages are verified with deterministic fixtures. No live OpenAI call was made.
 
-Milestone 0 reached its verified stopping condition on 2026-08-05.
+## Verified Milestones 7–8 checkpoint
 
-- `make bootstrap`: created `.env` once with generated local secrets at mode `0600`; built the Python 3.13.14 runtime and quality images from the locked dependency graph.
-- `make format`: Ruff formatted the implementation and applied safe import/lint fixes.
-- `make lint`: 51 Python files formatted; Ruff reported `All checks passed!`.
-- `make typecheck`: strict mypy with the Django plugin reported `Success: no issues found in 27 source files`.
-- `make check-migrations`: reported `No changes detected`.
-- `make check-deploy`: Django 5.2 production deployment checks reported no issues under CI-safe HTTPS settings.
-- `make test`: 24 unit tests passed; branch coverage was 86.09% against the enforced 80% floor. Live-provider tests were excluded by marker.
-- `make test-integration`: one PostgreSQL integration test passed against PostgreSQL 18.4 and confirmed all migrations applied.
-- `make test-e2e`: one real HTTP live-server health flow passed.
-- `make compose-config`: base, development, and production Compose rendered successfully; policy checks confirmed the PostgreSQL 18 parent volume, private base/production data services, loopback-only development ports, prebuilt production application image, read-only application roots, and no source binds/migration commands in production processes.
-- `make check-docs`: all local Markdown links resolved.
-- `make secret-scan`: no potential secrets were found in implementation files; ignored local `.env`, generated backups, the lock file, caches, Git internals, and the normative knowledge-base package are excluded deliberately.
-- Final aggregate `make verify`: exit `0` after running all checks above.
-- `make up`: explicit one-shot migration service applied 39 Django/Beat migrations, then web, PostgreSQL, Redis, two Celery workers, database-backed Beat, and Caddy reached running/healthy state.
-- Runtime probes: `/health/live` returned `{"status":"live"}`; `/health/ready` returned ready with configuration/database/migrations all `true`.
-- Runtime identity/version checks: web and worker ran as UID/GID `10001`; Python `3.13.14`, PostgreSQL `18.4`, Redis `8.8.1`, Celery `5.6.3`, and Django `5.2.17` were observed in their containers.
-- Worker logs confirmed distinct direct exchange/routing-key bindings, Redis broker connection, disabled Celery results, core concurrency 2, research concurrency 1, and database-backed Beat startup.
-- `make persistence-check`: the named PostgreSQL volume retained all 39 migration records across a stop/recreate cycle.
-- `make backup`: produced a 47,730-byte custom-format database dump, a media archive, JSON manifest, and verified SHA-256 checksums under ignored `backups/20260805T150009Z/`.
-- `make restore-drill FILE=backups/20260805T150009Z/database.dump`: restored into an isolated temporary PostgreSQL 18 container and verified all 39 migration records without touching the canonical database.
-- No live OpenAI/provider call was made. All provider feature flags remain disabled.
+- Docker checkpoint commands passed: no migration drift; 142 unit tests at 81.50% coverage, 11 PostgreSQL integration tests, and 7 real-HTTP E2E tests.
+- Five live Hostinger signals completed deterministic `CapabilityAssessmentV2` classification with exact assessment-evidence links, one mutually exclusive mode, Python-owned relevance scores, 0.800 coverage, and explicit asset/strategic unknowns. PostgreSQL rejects assessment-evidence-link mutation.
+- Five time-bounded company assessments were appended through concurrent aggregation commands; four were superseded without deletion. The current assessment selects all five signals and records every required feature, cutoff/input hash, four supported company patterns, priority 71, and overall coverage 0.670.
+- One active Hostinger capability-systems opportunity is research eligible with independent research/solution/outreach/relationship states. Qualification and mode overrides are actor/reason audit records, not rewrites, and survive automatic rescoring.
+- Browser QA verified the ranked workspace and opportunity detail with score decomposition, missing fields, feature snapshot, source-linked signals, policy versions, status, and next action. No OpenAI call was made.
 
-The next plan is milestone 1 — Accounts, audit, operations, and the durable transactional outbox — using specifications `06`, `07`, `23`, `24`, `26`, and `27`. Its stopping condition is a permissioned operational dashboard where a service transaction writes a domain record and outbox row, a simulated broker outage leaves the row durable, recovery publishes it idempotently, and the operations UI exposes attempts/state.
+## Verified Milestone 6 checkpoint
+
+- Final `make verify`: exit 0; 205 files formatted/Ruff clean, strict mypy clean across 149 source files, no migration drift or deployment issues, 138 unit tests at 82.36% coverage, 10 PostgreSQL integration tests, 6 real-HTTP E2E tests, and clean Compose/docs/secret gates.
+- Five additive migrations create exact evidence catalogs/items, signal ontology/attempt/event/evidence state, PostgreSQL immutability triggers, and explicit detector-policy supersession review state. All are applied through the release service.
+- Live public Hostinger Ashby ingestion produced 72 canonical jobs/events. Current deterministic detector/ontology 1.0.2 produced 72 immutable catalogs, 553 items, 67 explicit no-signal outcomes, and 5 active signals without an OpenAI call.
+- Exact phrase boundaries replaced unsafe substring matching after browser QA exposed `etl` inside `quietly`. Two earlier smoke detector versions remain durable; 15 prior results are retracted as superseded with system audits, not deleted.
+- The active Signal Inbox and detail page expose exact quotes, offsets, hashes, source artifact, posting/company/run links, freshness, confidence, and all detector/prompt/schema/ontology versions. Reviewer retraction is permissioned, reasoned, audited, and non-destructive.
+- Strict `SignalDetectionResultV2` matches the canonical required-key contract. Invalid IDs/tags/event kinds/snapshots, commercial rationale, prompt-injection-like text, generic AI, and replay cannot create duplicate or unsupported observations.
+
+## Verified Milestone 5 checkpoint
+
+- Four additive migrations introduced immutable search/model policy, discovery run/query/candidate/watch state, provider bounds, and durable leases. The live release migration and idempotent bootstrap completed without data loss.
+- Final `make verify`: exit 0; 182 files formatted/Ruff clean, strict mypy clean across 131 source files, no migration drift or deployment issues, 126 unit tests at 83.37% coverage, 8 PostgreSQL integration tests, 5 real-HTTP E2E tests, and clean Compose/docs/secret gates.
+- Live manual run `a3a260d0-6249-45db-bbf0-950efdf8bec7` completed and published through the outbox, then queued three watched endpoints through the ordinary source pipeline. The provider path stayed explicitly disabled; no live OpenAI call occurred.
+- Real downstream outcomes were safe and visible: Ashby HTTP 304 complete with no duplicate jobs, example.com complete, and the oversized legacy OpenAI board failed `FETCH_RESPONSE_TOO_LARGE` without domain effects.
+- Browser QA verified definition/run/candidate navigation, schedule/window/budget metrics, warning and pipeline visibility, semantic tables, and explicit diagnostic-not-evidence labeling.
+- ADR-008 records the typed adapter, immutable provider policy, conservative budget reservations, and PostgreSQL lease choice. README and `.env.example` document actual startup/manual discovery and opt-in provider requirements.
+
+## Verified Milestone 4 checkpoint
+
+- Final `make verify`: exit 0; 118 unit tests at 83.79% coverage, 7 PostgreSQL integration tests, 4 E2E tests, plus formatting/Ruff, mypy (106 source files), migration/deploy, Compose, docs, and secret gates.
+- Live Ashby conditional re-poll: HTTP 304; one new fetch attempt, 56 observations, and 56 cosmetic normalizer-upgrade events. PostgreSQL retained 56 postings and 112 immutable normalized snapshots.
+- Browser QA showed the source-backed posting, last-seen update, absence counter, exact versioned change timeline/diff, duplicate section, and immutable snapshot history.
+- Five additive jobs migrations are applied; PostgreSQL triggers reject normalized-snapshot and posting-change-event mutation.

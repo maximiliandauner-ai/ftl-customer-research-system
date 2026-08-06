@@ -2,11 +2,14 @@ import pytest
 from django.contrib.auth.models import Group, Permission, User
 from django.core.management import call_command
 from django.db.models.deletion import ProtectedError
+from django_celery_beat.models import PeriodicTask
 
 from apps.accounts.models import TeamRole, TeamRoleName
-from apps.accounts.policy import ROLE_PERMISSION_CODENAMES
+from apps.accounts.policy import ROLE_PERMISSION_KEYS
 from apps.accounts.services import assign_team_role
+from apps.discovery.models import SearchDefinition
 from apps.operations.models import AuditEvent, PipelineRun, PipelineStatus, PipelineTrigger
+from apps.providers.models import ModelPolicy
 
 
 @pytest.mark.django_db
@@ -19,10 +22,17 @@ def test_bootstrap_is_idempotent_and_seeds_roles_and_schedules(
     assert set(Group.objects.values_list("name", flat=True)) >= set(TeamRoleName.values)
     for role in TeamRoleName:
         group = Group.objects.get(name=role.value)
-        assert set(group.permissions.values_list("codename", flat=True)) == set(
-            ROLE_PERMISSION_CODENAMES[role]
+        assert set(group.permissions.values_list("content_type__app_label", "codename")) == set(
+            ROLE_PERMISSION_KEYS[role]
         )
-    assert "5 roles (0 new), 2 schedules" in capsys.readouterr().out
+    assert "5 roles (0 new), 3 schedules, 0 new watches" in capsys.readouterr().out
+    assert PeriodicTask.objects.filter(enabled=True).count() == 3
+    assert SearchDefinition.objects.get(active=True).definition_key == "ftl-capability-demand"
+    assert set(ModelPolicy.objects.filter(active=True).values_list("policy_key", flat=True)) == {
+        "discovery.standard_web",
+        "research.standard_web",
+        "research.standard_extract",
+    }
 
 
 @pytest.mark.django_db
@@ -89,11 +99,7 @@ def test_assign_team_role_command_rejects_unknown_user() -> None:
 
 @pytest.mark.django_db
 def test_permission_catalog_exists_after_migration() -> None:
-    expected = set().union(*ROLE_PERMISSION_CODENAMES.values())
-    actual = set(
-        Permission.objects.filter(content_type__app_label="operations").values_list(
-            "codename", flat=True
-        )
-    )
+    expected = set().union(*ROLE_PERMISSION_KEYS.values())
+    actual = set(Permission.objects.values_list("content_type__app_label", "codename"))
 
     assert expected <= actual

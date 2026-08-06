@@ -1,0 +1,14 @@
+{
+  "jobs": [
+    {
+      "id": 9876,
+      "title": "Content Marketing Lead",
+      "absolute_url": "https://boards.greenhouse.io/acme/jobs/9876",
+      "location": {"name": "London, UK"},
+      "departments": [{"id": 2, "name": "Marketing"}],
+      "language": "en",
+      "updated_at": "2026-08-02T08:00:00Z",
+      "content": "<h2>About the role</h2><p>Build campaigns across editorial and video.</p><script>alert('never')</script>"
+    }
+  ]
+}

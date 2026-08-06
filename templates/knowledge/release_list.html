@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Knowledge & assets · FTL{% endblock %}
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Private FTL context</p><h1>Knowledge & asset releases</h1><p class="lede">Validated immutable editorial releases. Sync and activation are deliberately separate.</p></div>{% if active_release %}<span class="status status--active">Active v{{ active_release.version }}</span>{% endif %}</header>
+<section class="notice"><strong>Editorial command</strong><br><code>python manage.py sync_ftl_knowledge --commit &lt;git-sha&gt; --validate --username &lt;user&gt;</code>. This never activates the result.</section>
+<section class="panel"><div class="table-wrap"><table><thead><tr><th>Release</th><th>Commit / manifest</th><th>Offers</th><th>Claims</th><th>Assets</th><th>Created</th></tr></thead><tbody>{% for release in releases %}<tr><td><a href="{% url 'knowledge:detail' release.id %}">v{{ release.version }}</a>{% if active_release.id == release.id %}<small>Active</small>{% endif %}</td><td><code>{{ release.source_commit }}</code><small><code>{{ release.manifest_sha256 }}</code></small></td><td>{{ release.offers.count }}</td><td>{{ release.approved_claims.count }}</td><td>{{ release.assets.count }}</td><td>{{ release.created_at|date:"d M Y, H:i:s" }}</td></tr>{% empty %}<tr><td colspan="6">No validated release has been synced.</td></tr>{% endfor %}</tbody></table></div></section>
+{% endblock %}

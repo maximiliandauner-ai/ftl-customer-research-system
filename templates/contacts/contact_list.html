@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Contacts · FTL{% endblock %}
+{% block content %}
+<header class="page-header"><div><p class="eyebrow">Buyer and route intelligence</p><h1>Contacts</h1><p class="lede">Role categories, literal public routes, human-origin provenance, independent review states, suppression, and exact target selections. No message is generated here.</p></div></header>
+<section class="panel"><div class="table-wrap"><table><thead><tr><th>Company</th><th>State</th><th>Solution</th><th>Roles</th><th>Sources</th><th>Started</th></tr></thead><tbody>{% for run in page_obj %}<tr><td><a href="{% url 'contacts:detail' run.id %}">{{ run.opportunity.company.name }}</a></td><td><span class="status status--{{ run.status }}">{{ run.get_status_display }}</span></td><td>v{{ run.solution_version.version }}</td><td>{{ run.buyer_role_result.roles.count|default:"Pending" }}</td><td>{{ run.source_targets.count }}</td><td>{{ run.created_at|date:"d M Y, H:i" }}</td></tr>{% empty %}<tr><td colspan="6">No contact research has been requested.</td></tr>{% endfor %}</tbody></table></div></section>
+{% endblock %}

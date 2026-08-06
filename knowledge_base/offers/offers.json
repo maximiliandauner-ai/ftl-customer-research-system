@@ -1,0 +1,15 @@
+[
+  {
+    "key": "pilot_plus_system",
+    "version": 2,
+    "title": "Pilot + Production System",
+    "ftl_layers": ["create", "build", "enable"],
+    "problem_patterns": ["workflow", "scaling", "internal_skills"],
+    "description": "Create the first premium result and the reusable workflow behind it.",
+    "typical_deliverables": [],
+    "suitable_client_profiles": [],
+    "infrastructure_options": ["cloud", "hybrid"],
+    "exclusions": [],
+    "approved": true
+  }
+]

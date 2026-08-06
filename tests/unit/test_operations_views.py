@@ -173,7 +173,7 @@ def test_dependency_health_is_permissioned_and_reports_safe_state() -> None:
     assert response.status_code == 200
     payload = response.json()
     assert payload["status"] == "healthy"
-    assert payload["checks"]["beat_schedules"] == 2
+    assert payload["checks"]["beat_schedules"] == 3
     assert payload["checks"]["workers"] == 1
     assert payload["checks"]["openai"] == "disabled_by_policy"
     assert "password" not in response.content.decode().lower()

@@ -24,8 +24,19 @@ INSTALLED_APPS = [
     "csp",
     "django_celery_beat",
     "apps.accounts.apps.AccountsConfig",
+    "apps.companies.apps.CompaniesConfig",
+    "apps.contacts.apps.ContactsConfig",
     "apps.core.apps.CoreConfig",
+    "apps.discovery.apps.DiscoveryConfig",
+    "apps.jobs.apps.JobsConfig",
+    "apps.knowledge.apps.KnowledgeConfig",
     "apps.operations.apps.OperationsConfig",
+    "apps.opportunities.apps.OpportunitiesConfig",
+    "apps.providers.apps.ProvidersConfig",
+    "apps.research.apps.ResearchConfig",
+    "apps.signals.apps.SignalsConfig",
+    "apps.solutions.apps.SolutionsConfig",
+    "apps.sources.apps.SourcesConfig",
 ]
 
 MIDDLEWARE = [

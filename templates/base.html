@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>{% block title %}FTL Opportunity Intelligence{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=1.0.0">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=2.2.0">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -18,13 +18,17 @@
       </a>
       <nav>
         <a href="{% url 'overview' %}">Overview</a>
-        <span aria-disabled="true">Signal Inbox <small>Later</small></span>
-        <span aria-disabled="true">Companies <small>Later</small></span>
-        <span aria-disabled="true">Opportunities <small>Later</small></span>
-        <span aria-disabled="true">Research <small>Later</small></span>
-        <span aria-disabled="true">Contacts <small>Later</small></span>
+        {% if perms.signals.view_signalevent %}<a href="{% url 'signals:list' %}">Signal Inbox</a>{% endif %}
+        {% if perms.discovery.view_discoveryrun %}<a href="{% url 'discovery:index' %}">Discovery</a>{% endif %}
+        {% if perms.companies.view_company %}<a href="{% url 'companies:list' %}">Companies</a>{% endif %}
+        {% if perms.sources.view_sourcecandidate %}<a href="{% url 'sources:index' %}">Sources</a>{% endif %}
+        {% if perms.jobs.view_jobposting %}<a href="{% url 'jobs:list' %}">Jobs</a>{% endif %}
+        {% if perms.opportunities.view_opportunity %}<a href="{% url 'opportunities:list' %}">Opportunities</a>{% endif %}
+        {% if perms.research.view_researchrun %}<a href="{% url 'research:list' %}">Research</a>{% endif %}
+        {% if perms.solutions.view_solutionversion %}<a href="{% url 'solutions:list' %}">Solutions</a>{% endif %}
+        {% if perms.contacts.view_contactresearchrun %}<a href="{% url 'contacts:list' %}">Contacts</a>{% endif %}
         <span aria-disabled="true">Outreach <small>Later</small></span>
-        <span aria-disabled="true">Knowledge <small>Later</small></span>
+        {% if perms.knowledge.view_knowledgerelease %}<a href="{% url 'knowledge:list' %}">Knowledge & assets</a>{% endif %}
         {% if perms.operations.view_pipelinerun %}
           <a href="{% url 'operations:index' %}">Operations</a>
         {% endif %}

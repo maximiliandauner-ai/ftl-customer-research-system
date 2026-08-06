@@ -100,7 +100,11 @@ def dependencies(_request: HttpRequest) -> JsonResponse:
         worker_count = 0
     checks["workers"] = worker_count
     beat_schedule_count = PeriodicTask.objects.filter(
-        name__in=("FTL outbox dispatch", "FTL stale outbox recovery"),
+        name__in=(
+            "FTL outbox dispatch",
+            "FTL stale outbox recovery",
+            "FTL daily source discovery",
+        ),
         enabled=True,
     ).count()
     checks["beat_schedules"] = beat_schedule_count
@@ -122,7 +126,7 @@ def dependencies(_request: HttpRequest) -> JsonResponse:
             bool(checks["storage"]),
             bool(checks["broker"]),
             worker_count > 0,
-            beat_schedule_count == 2,
+            beat_schedule_count == 3,
         )
     )
     return JsonResponse(

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workzag-jobs>
+  <position>
+    <id>12345</id>
+    <office>Berlin</office>
+    <department>Creative</department>
+    <recruitingCategory>Video</recruitingCategory>
+    <name>Senior Video Producer</name>
+    <employmentType>permanent</employmentType>
+    <createdAt>2026-08-01</createdAt>
+    <jobDescriptions>
+      <jobDescription><name>Your responsibilities</name><value>&lt;p&gt;Lead branded video productions.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Own production plans&lt;/li&gt;&lt;/ul&gt;</value></jobDescription>
+      <jobDescription><name>Your profile</name><value>&lt;p&gt;Five years of production experience.&lt;/p&gt;</value></jobDescription>
+    </jobDescriptions>
+  </position>
+</workzag-jobs>

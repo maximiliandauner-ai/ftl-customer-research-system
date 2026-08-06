@@ -8,6 +8,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.accounts.models import TeamRole
+from apps.operations.commands import CHECKPOINT_COMMAND_TYPE
 from apps.operations.contracts import (
     CheckpointPayloadV1,
     CreateCheckpointCommandV1,
@@ -24,8 +25,6 @@ from apps.operations.models import (
     StepStatus,
     TaskOutbox,
 )
-
-CHECKPOINT_COMMAND_TYPE = "operations.complete_checkpoint"
 
 
 class InvalidOutboxTransition(ValueError):

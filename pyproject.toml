@@ -11,13 +11,19 @@ requires-python = ">=3.13,<3.14"
 license = { file = "LICENSE.md" }
 dependencies = [
   "celery[redis]==5.6.3",
+  "cryptography==49.0.0",
   "Django[argon2]==5.2.17",
   "django-celery-beat==2.9.0",
   "django-csp==4.0",
+  "defusedxml==0.7.1",
   "gunicorn==26.0.0",
+  "httpcore==1.0.9",
+  "httpx==0.28.1",
+  "openai==2.47.0",
   "psycopg[binary]==3.3.4",
   "pydantic==2.13.4",
   "pydantic-settings==2.14.2",
+  "tldextract==5.3.1",
   "whitenoise==6.12.0",
 ]
 
@@ -30,6 +36,7 @@ dev = [
   "pytest-cov==7.1.0",
   "pytest-django==4.12.0",
   "ruff==0.16.1",
+  "types-defusedxml==0.7.0.20260504",
 ]
 
 [tool.hatch.build.targets.wheel]

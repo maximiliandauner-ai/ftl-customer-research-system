@@ -11,9 +11,27 @@ from django.db.models import Q
 from django.utils import timezone
 
 from apps.core.logging import redact
-from apps.operations.contracts import CheckpointPayloadV1, TaskEnvelopeV2
+from apps.operations.commands import (
+    ASSET_MATCH_COMMAND_TYPE,
+    BUYER_ROLES_INFER_COMMAND_TYPE,
+    CHECKPOINT_COMMAND_TYPE,
+    COMPANIES_AGGREGATE_COMMAND_TYPE,
+    CONTACT_SOURCE_SCAN_COMMAND_TYPE,
+    DISCOVERY_EXECUTE_COMMAND_TYPE,
+    JOBS_PARSE_COMMAND_TYPE,
+    RESEARCH_EXTRACT_COMMAND_TYPE,
+    RESEARCH_PUBLIC_COMMAND_TYPE,
+    SIGNALS_CLASSIFY_COMMAND_TYPE,
+    SIGNALS_DETECT_COMMAND_TYPE,
+    SOLUTION_DESIGN_COMMAND_TYPE,
+    SOURCE_FETCH_COMMAND_TYPE,
+)
+from apps.operations.contracts import (
+    CheckpointPayloadV1,
+    TargetCommandPayloadV1,
+    TaskEnvelopeV2,
+)
 from apps.operations.models import ActorType, AuditEvent, OutboxStatus, TaskOutbox
-from apps.operations.services import CHECKPOINT_COMMAND_TYPE
 from config.celery import app as celery_app
 
 MAX_AUTOMATIC_ATTEMPTS = 8
@@ -44,7 +62,55 @@ COMMAND_ROUTES = {
     CHECKPOINT_COMMAND_TYPE: CommandRoute(
         task_name="operations.complete_checkpoint",
         queue="maintenance",
-    )
+    ),
+    SOURCE_FETCH_COMMAND_TYPE: CommandRoute(
+        task_name="sources.fetch_public_source",
+        queue="fetch",
+    ),
+    JOBS_PARSE_COMMAND_TYPE: CommandRoute(
+        task_name="jobs.parse_source_snapshot",
+        queue="parse",
+    ),
+    DISCOVERY_EXECUTE_COMMAND_TYPE: CommandRoute(
+        task_name="discovery.execute",
+        queue="discovery",
+    ),
+    SIGNALS_DETECT_COMMAND_TYPE: CommandRoute(
+        task_name="signals.detect_posting_change",
+        queue="classification",
+    ),
+    SIGNALS_CLASSIFY_COMMAND_TYPE: CommandRoute(
+        task_name="signals.classify_signal",
+        queue="classification",
+    ),
+    COMPANIES_AGGREGATE_COMMAND_TYPE: CommandRoute(
+        task_name="opportunities.aggregate_company",
+        queue="aggregation",
+    ),
+    RESEARCH_PUBLIC_COMMAND_TYPE: CommandRoute(
+        task_name="research.run_public",
+        queue="research",
+    ),
+    RESEARCH_EXTRACT_COMMAND_TYPE: CommandRoute(
+        task_name="research.extract",
+        queue="research",
+    ),
+    SOLUTION_DESIGN_COMMAND_TYPE: CommandRoute(
+        task_name="solutions.design",
+        queue="solution_design",
+    ),
+    ASSET_MATCH_COMMAND_TYPE: CommandRoute(
+        task_name="solutions.match_assets",
+        queue="asset_matching",
+    ),
+    BUYER_ROLES_INFER_COMMAND_TYPE: CommandRoute(
+        task_name="contacts.infer_roles",
+        queue="contact_enrichment",
+    ),
+    CONTACT_SOURCE_SCAN_COMMAND_TYPE: CommandRoute(
+        task_name="contacts.scan_source",
+        queue="contact_enrichment",
+    ),
 }
 
 
@@ -104,9 +170,16 @@ def claim_outbox_batch(*, worker_id: str, limit: int = 100) -> tuple[UUID, ...]:
 
 
 def build_envelope(command: TaskOutbox) -> TaskEnvelopeV2:
-    if command.command_type != CHECKPOINT_COMMAND_TYPE:
+    if command.command_type not in COMMAND_ROUTES:
         raise UnsupportedCommand("The command type has no active envelope policy.")
-    payload = CheckpointPayloadV1.model_validate(command.payload)
+    if command.command_type == CHECKPOINT_COMMAND_TYPE:
+        checkpoint_payload = CheckpointPayloadV1.model_validate(command.payload)
+        payload = TargetCommandPayloadV1(
+            pipeline_run_id=checkpoint_payload.pipeline_run_id,
+            object_id=checkpoint_payload.pipeline_run_id,
+        )
+    else:
+        payload = TargetCommandPayloadV1.model_validate(command.payload)
     if payload.pipeline_run_id != command.pipeline_run_id:
         raise ValueError("The command payload does not match its canonical pipeline run.")
     requested_by = (
@@ -118,7 +191,7 @@ def build_envelope(command: TaskOutbox) -> TaskEnvelopeV2:
         outbox_id=command.pk,
         pipeline_run_id=command.pipeline_run_id,
         command_type=command.command_type,
-        object_id=command.pipeline_run_id,
+        object_id=payload.object_id,
         idempotency_key=command.idempotency_key,
         requested_by=requested_by,
         request_id=command.request_id,

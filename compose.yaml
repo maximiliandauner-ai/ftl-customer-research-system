@@ -83,7 +83,7 @@ services:
     <<: [*app-common, *app-security]
     command:
       - ./scripts/start-worker.sh
-      - discovery,fetch,parse,classification,aggregation,solution_design,asset_matching,drafting,review,maintenance
+      - discovery,fetch,parse,classification,aggregation,research,solution_design,asset_matching,drafting,review,maintenance
     volumes:
       - media_data:/app/media
     profiles: ["workers"]

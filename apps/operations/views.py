@@ -10,6 +10,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST
 
+from apps.companies.models import Company
 from apps.operations.contracts import CreateCheckpointCommandV1
 from apps.operations.forms import CheckpointCommandForm, OutboxRetryForm
 from apps.operations.models import (
@@ -24,6 +25,7 @@ from apps.operations.services import (
     create_checkpoint_command,
     retry_outbox_command,
 )
+from apps.sources.models import CandidateStatus, SourceArtifact, SourceCandidate
 
 PAGE_SIZE = 30
 
@@ -57,6 +59,11 @@ def overview(request: HttpRequest) -> HttpResponse:
             ).count(),
             "active_run_count": PipelineRun.objects.filter(
                 status__in=("queued", "running", "waiting_external")
+            ).count(),
+            "company_count": Company.objects.count(),
+            "source_artifact_count": SourceArtifact.objects.count(),
+            "source_attention_count": SourceCandidate.objects.filter(
+                status__in=(CandidateStatus.REJECTED, CandidateStatus.UNSAFE)
             ).count(),
             "recent_runs": PipelineRun.objects.select_related("requested_by")[:8],
             "recent_audit": AuditEvent.objects.all()[:8],

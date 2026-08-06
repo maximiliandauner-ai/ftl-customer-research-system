@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Discovery · FTL{% endblock %}
+{% block content %}
+<header class="page-header">
+  <div><p class="eyebrow">Discovery</p><h1>Company and job discovery</h1><p class="lede">Versioned searches find safe public candidates; watched endpoints are polled directly without paying to rediscover them.</p></div><a class="button" href="{% url 'discovery:candidate-list' %}">Browse candidates</a>
+</header>
+<section class="metric-grid" aria-label="Discovery summary">
+  <div class="metric"><span>Active definitions</span><strong>{{ active_definition_count }}</strong><small>Versioned search policies</small></div>
+  <div class="metric"><span>Watched endpoints</span><strong>{{ watched_endpoint_count }}</strong><small>Direct scheduled polling</small></div>
+  <div class="metric"><span>Candidates in view</span><strong>{{ candidate_count }}</strong><small>Provider candidates, not evidence</small></div>
+</section>
+<section class="panel">
+  <div class="panel-heading"><h2>Active search definitions</h2><span class="tag">Daily at 06:00 Europe/Berlin</span></div>
+  <div class="table-wrap"><table><thead><tr><th>Definition</th><th>Coverage</th><th>Bounds</th><th>Action</th></tr></thead><tbody>
+    {% for definition in definitions %}<tr>
+      <td><strong>{{ definition.name }}</strong><small>{{ definition.definition_key }} · version {{ definition.version }} · {{ definition.schedule_key }}</small></td>
+      <td>{{ definition.countries|join:", " }}<small>{{ definition.capability_clusters|join:", " }}</small></td>
+      <td>{{ definition.max_candidates }} candidates<small>{{ definition.lookback_days }}-day manual window</small></td>
+      <td>{% if perms.discovery.run_searchdefinition %}<form method="post" action="{% url 'discovery:run-definition' definition.id %}">{% csrf_token %}<button class="button button--primary" type="submit">Run discovery</button></form>{% else %}View only{% endif %}</td>
+    </tr>{% empty %}<tr><td colspan="4">No active search definition. Run <code>bootstrap_ftl_platform</code>.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<form class="filter-bar" method="get"><label for="status">Run status</label><select id="status" name="status"><option value="">All</option><option value="queued" {% if selected_status == 'queued' %}selected{% endif %}>Queued</option><option value="running" {% if selected_status == 'running' %}selected{% endif %}>Running</option><option value="complete" {% if selected_status == 'complete' %}selected{% endif %}>Complete</option><option value="partial" {% if selected_status == 'partial' %}selected{% endif %}>Partial</option><option value="failed" {% if selected_status == 'failed' %}selected{% endif %}>Failed</option></select><button class="button" type="submit">Filter</button></form>
+<section class="panel"><div class="panel-heading"><h2>Discovery runs</h2></div><div class="table-wrap"><table><thead><tr><th>Run</th><th>Status</th><th>Output</th><th>Window</th><th>Owner</th></tr></thead><tbody>
+  {% for run in page_obj %}<tr><td><a href="{% url 'discovery:run-detail' run.id %}">{{ run.definition.name }}</a><small>{{ run.run_reason }} · {{ run.id }}</small></td><td><span class="status status--{{ run.status }}">{{ run.get_status_display }}</span>{% if run.warnings %}<small>{{ run.warnings|join:", " }}</small>{% endif %}</td><td>{{ run.known_endpoints_queued }} endpoint polls<small>{{ run.candidates_found }} new candidates · {{ run.unsafe_candidates }} unsafe</small></td><td>{{ run.logical_window_start|date:"d M Y H:i" }}<small>to {{ run.logical_window_end|date:"d M Y H:i" }}</small></td><td>{{ run.pipeline_run.requested_by|default:"System" }}</td></tr>{% empty %}<tr><td colspan="5">No discovery runs yet.</td></tr>{% endfor %}
+  </tbody></table></div>{% include "operations/pagination.html" %}</section>
+{% endblock %}
