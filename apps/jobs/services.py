@@ -644,7 +644,7 @@ def _persist_result(start: ParseStart, result: ConnectorParseResultV1, elapsed_m
                     "updated_at",
                 )
             )
-            if observation_created and not reprocess:
+            if observation_created and (not reprocess or created):
                 change_type = _change_type(
                     created=created,
                     was_closed=was_closed,

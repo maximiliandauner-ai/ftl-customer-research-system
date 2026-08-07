@@ -20,7 +20,11 @@ from apps.jobs.models import (
     PostingLifecycle,
     PostingObservation,
 )
-from apps.jobs.services import _link_exact_duplicates, execute_source_parse
+from apps.jobs.services import (
+    _link_exact_duplicates,
+    create_reparse_command,
+    execute_source_parse,
+)
 from apps.operations.commands import JOBS_PARSE_COMMAND_TYPE
 from apps.operations.models import AuditEvent, PipelineStatus, TaskOutbox
 from apps.operations.outbox import build_envelope
@@ -155,6 +159,29 @@ def test_unsupported_content_fails_visibly_without_creating_posting(tmp_path) ->
     assert JobPosting.objects.count() == 0
     submission.endpoint.refresh_from_db()  # type: ignore[union-attr]
     assert submission.endpoint.status == EndpointStatus.DEGRADED  # type: ignore[union-attr]
+
+
+@pytest.mark.django_db
+def test_reparse_that_creates_first_posting_records_created_event(tmp_path) -> None:
+    user = User.objects.create_user(username="job-first-reparse")
+    submission = submit_ashby(user, "jobs.reparse:first-posting")
+    assert submission.pipeline_run is not None
+    source_outbox = TaskOutbox.objects.get(pipeline_run=submission.pipeline_run)
+    with override_settings(MEDIA_ROOT=tmp_path):
+        execute_source_fetch(
+            build_envelope(source_outbox),
+            policy=settings.RUNTIME_SETTINGS.fetch,
+            fetcher=FixtureFetcher(ASHBY_FIXTURE.read_bytes()),
+        )
+        snapshot = SourceSnapshot.objects.get()
+        _run, reparse_outbox, _created = create_reparse_command(snapshot)
+        execute_source_parse(build_envelope(reparse_outbox))
+
+    change = PostingChangeEvent.objects.get()
+    assert change.change_type == PostingChangeType.CREATED
+    assert change.old_snapshot is None
+    assert change.new_snapshot is not None
+    assert TaskOutbox.objects.filter(command_type="signals.detect").count() == 1
 
 
 @pytest.mark.django_db
