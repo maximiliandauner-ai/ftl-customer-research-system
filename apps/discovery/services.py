@@ -61,7 +61,7 @@ from apps.sources.policy import SourcePolicyError, canonicalize_url, normalize_h
 from apps.sources.services import queue_registered_endpoint, submit_public_source
 
 BERLIN = ZoneInfo("Europe/Berlin")
-DISCOVERY_POLICY_VERSION = "2.1.0"
+DISCOVERY_POLICY_VERSION = "2.2.0"
 DEFAULT_MODEL_POLICY_KEY = "discovery.standard_web"
 DISCOVERY_LEASE_DURATION = timedelta(minutes=5)
 

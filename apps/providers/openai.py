@@ -31,7 +31,7 @@ from apps.research.contracts import (
     WebResearchRequestV2,
 )
 
-DISCOVERY_PROMPT_PATH = "discovery_candidate_search/v2.1.0.md"
+DISCOVERY_PROMPT_PATH = "discovery_candidate_search/v2.2.0.md"
 RESEARCHER_PROMPT_PATH = "company_researcher/v2.1.0.md"
 EXTRACTOR_PROMPT_PATH = "research_extractor/v2.1.0.md"
 

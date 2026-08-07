@@ -202,8 +202,8 @@ def test_daily_schedule_is_idempotent_for_one_berlin_window() -> None:
     second = schedule_daily_runs(now)
 
     assert first == second
-    assert len(first) == 3
-    assert TaskOutbox.objects.filter(command_type="discovery.execute").count() == 3
+    assert len(first) == 4
+    assert TaskOutbox.objects.filter(command_type="discovery.execute").count() == 4
 
 
 @pytest.mark.django_db
@@ -215,9 +215,13 @@ def test_creative_and_learning_queries_are_narrow_and_have_no_company_names() ->
     learning_definition = SearchDefinition.objects.get(
         definition_key="ftl-learning-enablement-demand", active=True
     )
+    munich_definition = SearchDefinition.objects.get(
+        definition_key="ftl-munich-creative-learning-demand", active=True
+    )
 
     creative_query = render_query(creative_definition)
     learning_query = render_query(learning_definition)
+    munich_query = render_query(munich_definition)
 
     assert creative_definition.countries == ["DE", "AT", "CH"]
     assert '"KI-gestützte Videoproduktion"' in creative_query
@@ -226,12 +230,18 @@ def test_creative_and_learning_queries_are_narrow_and_have_no_company_names() ->
     assert '"digitales Lernen"' in learning_query
     assert '"AI tutor"' in learning_query
     assert '"KI-gestützte Videoproduktion"' not in learning_query
+    assert munich_definition.countries == ["DE"]
+    assert munich_definition.locations == ["München", "Munich"]
+    assert '"Videoproduktion & KI"' in munich_query
+    assert '"Lern- und Kommunikationsformate"' in munich_query
     for query in (creative_query, learning_query):
         assert '"München"' in query
         assert "Werkstudent" in query
         assert "HOFFMANN" not in query
         assert '"DE"' not in query
         assert len(query) <= 2_000
+    assert "HOFFMANN" not in munich_query
+    assert len(munich_query) <= 2_000
 
 
 @pytest.mark.django_db

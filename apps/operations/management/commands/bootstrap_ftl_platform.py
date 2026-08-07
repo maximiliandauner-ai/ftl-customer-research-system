@@ -433,6 +433,59 @@ class Command(BaseCommand):
             ),
             actor=None,
         )
+        create_definition_version(
+            SearchDefinitionInputV2(
+                definition_key="ftl-munich-creative-learning-demand",
+                name="Munich AI video and learning demand",
+                description=(
+                    "A focused Munich/München shard for sparse part-time, student, and "
+                    "nonstandard roles combining AI-assisted video with learning or internal "
+                    "communications. The shard is employer-agnostic and independently measurable."
+                ),
+                query_template="({{role_terms}}) ({{capability_terms}}) ({{location_terms}})",
+                language="de",
+                countries=("DE",),
+                locations=("München", "Munich"),
+                capability_clusters=(
+                    "creative_ai_production",
+                    "learning_content",
+                    "internal_enablement",
+                ),
+                positive_terms=(
+                    "KI-gestützte Videoproduktion",
+                    "KI-generierte Videos",
+                    "Videoproduktion & KI",
+                    "KI Content",
+                    "Lern- und Kommunikationsformate",
+                    "digitales Lernen",
+                    "interne Weiterbildung",
+                ),
+                negative_terms=("recruitment agency", "staffing agency", "Personalvermittlung"),
+                preferred_domains=(
+                    "jobs.personio.com",
+                    "boards.greenhouse.io",
+                    "jobs.lever.co",
+                    "jobs.ashbyhq.com",
+                ),
+                excluded_domains=(
+                    "linkedin.com",
+                    "xing.com",
+                    "facebook.com",
+                ),
+                source_type_filters=(
+                    "job_posting",
+                    "career_page",
+                    "personio",
+                    "greenhouse",
+                    "lever",
+                    "ashby",
+                ),
+                schedule_key="daily_morning",
+                max_candidates=50,
+                lookback_days=45,
+            ),
+            actor=None,
+        )
         now = timezone.now()
         watch_count = 0
         for endpoint in SourceEndpoint.objects.filter(status=EndpointStatus.ACTIVE):

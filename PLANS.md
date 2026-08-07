@@ -1,7 +1,7 @@
 # Implementation Plan
 
 **Selected milestone:** Milestone 5 production refinement — DACH creative-AI and learning discovery recall
-**Visible outcome:** Daily and manual discovery use separate, measurable German/English creative-video and learning-enablement search families that can find HOFFMANN-EITLE-like public roles by task language, safely fetch and monitor them, and classify exact German creative/learning evidence without hardcoding a company.
+**Visible outcome:** Daily and manual discovery use separate, measurable German/English creative-video, learning-enablement, and Munich intent search families that can find HOFFMANN-EITLE-like public roles by task language, safely fetch and monitor them, and classify exact German creative/learning evidence without hardcoding a company.
 **Plan opened:** 2026-08-07
 **Predecessor:** Milestone 11 remains verified; this is a bounded correction to the already-deployed milestone-5 policy.
 
@@ -9,8 +9,8 @@
 
 - Specifications: `08_SEARCH_DEFINITIONS_AND_DISCOVERY.md`, `11_SIGNAL_DETECTION_AGENT.md`, `24_CELERY_ORCHESTRATION_AND_SCHEDULING.md`, `25_OPENAI_CLIENT_MODEL_ROUTING_AND_COSTS.md`, `28_TESTING_EVALUATION_AND_QUALITY_GATES.md`, `33_AGENT_PROMPT_ENGINEERING_STANDARD.md`, and binding audit corrections in `32`.
 - Finding: production had one English operations-focused definition. Its only live query did not contain creative-video, learning-content, German part-time, or Munich vocabulary, despite the normative specification requiring that query family.
-- Owned change: separate immutable creative-video and learning-enablement `SearchDefinition` families, discovery prompt/policy v2.1.0, German/English role/task query rendering, automatic watches for registered discovery endpoints, and signal ontology/detector v1.1.0 with exact German creative-learning phrases.
-- Failure/security: candidates remain non-evidence until isolated safe fetch and deterministic parse; excluded domains, budgets, strict provider source references, SSRF checks, immutable artifacts, and replay-safe outbox behavior remain unchanged. Three scheduled families make cost/yield measurable and reserve at most USD 1.50/day before later policy tuning.
+- Owned change: separate immutable creative-video, learning-enablement, and Munich intent `SearchDefinition` families, discovery prompt/policy v2.2.0, German/English role/task query rendering, automatic watches for registered discovery endpoints, and signal ontology/detector v1.1.0 with exact German creative-learning phrases.
+- Failure/security: candidates remain non-evidence until isolated safe fetch and deterministic parse; excluded domains, budgets, strict provider source references, SSRF checks, immutable artifacts, and replay-safe outbox behavior remain unchanged. Four scheduled families make cost/yield measurable and reserve at most USD 2.00/day before later policy tuning.
 - Data/rollback: no schema migration. Bootstrap appends/activates immutable policy records and watches existing active endpoints. Rollback deactivates the creative-learning definition without deleting candidates, artifacts, jobs, signals, or audit history.
 - Validation: focused Docker tests, full `make verify`, bootstrap idempotency, production Compose deployment, one bounded live manual discovery, downstream source/job/signal inspection, and healthy worker/readiness checks.
 - Stopping condition: the live definition is active, HOFFMANN-EITLE-like terms are present without a company name, a bounded live run is observable, registered endpoints are watched, and all Docker gates pass.
@@ -23,7 +23,8 @@ No new ADR is required: this implements the already-specified creative/learning 
 - Focused Docker verification passed 28 discovery/provider/signal/auth/integration/E2E tests.
 - Final aggregate `make verify` exited 0: 295 files were formatted/Ruff clean; strict mypy passed across 220 source files; migration drift and production deployment checks passed; 161 unit tests passed at 80.10% coverage; 14 PostgreSQL integration tests and 10 real-HTTP E2E tests passed; Compose, document-link, and secret gates were clean.
 - The first bounded production run (`91d93764-1fd5-4b36-8f65-111ceba12ba0`) completed with six first-party candidates and no unsafe candidates. It proved the expanded vocabulary works, but also showed that one long creative+learning+tools query diluted the Munich video-production intent and still omitted HOFFMANN EITLE.
-- The search is therefore split into a narrow creative-video family and a separate learning-enablement family. Focused verification passed 15 tests and the full aggregate gate passed again with the same counts. No schema migration is required; deployment of the refined definitions and a second bounded live run remain before the stopping condition is met.
+- The split creative-video run (`1ace06cf-0a92-40f6-9157-c7d77706aeac`) returned four candidates including strong current LUMAS and zooplus roles, but stopped partial after consuming its tool calls on domain/geographic breadth and still omitted HOFFMANN EITLE.
+- Prompt/policy v2.2.0 now starts with employer-site task/location passes, limits zero-yield ATS-only passes, and treats preferred ATS domains as URL preferences. A separate Munich/München shard protects sparse local role recall. Focused verification passed 18 tests and the full gate passed with 296 files, 161 unit tests at 80.11% coverage, 14 integration tests, and 10 E2E tests. Deployment and one bounded Munich run remain.
 
 ## Prior milestone 11 plan and checkpoint
 
