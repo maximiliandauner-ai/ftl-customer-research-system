@@ -38,10 +38,13 @@ Queue either reviewed search family from `/discovery/` or from the command line:
 ```sh
 docker compose --env-file .env -f compose.yaml -f compose.dev.yaml exec web \
   python manage.py run_discovery --definition-key ftl-capability-demand
+docker compose --env-file .env -f compose.yaml -f compose.dev.yaml exec web \
   python manage.py run_discovery --definition-key ftl-creative-learning-demand
+docker compose --env-file .env -f compose.yaml -f compose.dev.yaml exec web \
+  python manage.py run_discovery --definition-key ftl-learning-enablement-demand
 ```
 
-Every discovery run is first committed to PostgreSQL with its logical window, immutable search-definition version, limits, audit event, and outbox command. The operations family covers workflow/data/knowledge demand; the separate German/English creative-learning family covers AI-assisted video, learning content, internal enablement, and nonstandard part-time role titles without hardcoding employers. Newly registered endpoints become watched sources, and known endpoints are polled through the same safe fetch/parse path even when OpenAI is disabled. New web-search candidates require all three of `OPENAI_ENABLED=1`, `WEB_SEARCH_ENABLED=1`, and a real `OPENAI_API_KEY`; per-run, daily, monthly, and concurrency limits are enforced from the active database policy and runtime settings. The default configuration keeps those calls disabled.
+Every discovery run is first committed to PostgreSQL with its logical window, immutable search-definition version, limits, audit event, and outbox command. The operations family covers workflow/data/knowledge demand. Narrow German/English creative-video and learning-enablement families cover AI-assisted production, learning content, AI tutoring, internal enablement, and nonstandard part-time role titles without hardcoding employers; their yield can be measured independently instead of being diluted in one oversized query. Newly registered endpoints become watched sources, and known endpoints are polled through the same safe fetch/parse path even when OpenAI is disabled. New web-search candidates require all three of `OPENAI_ENABLED=1`, `WEB_SEARCH_ENABLED=1`, and a real `OPENAI_API_KEY`; per-run, daily, monthly, and concurrency limits are enforced from the active database policy and runtime settings. The default configuration keeps those calls disabled.
 
 Submit the first public source in the UI at `/sources/submit/`, or through the audited command:
 

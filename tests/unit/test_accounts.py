@@ -32,6 +32,7 @@ def test_bootstrap_is_idempotent_and_seeds_roles_and_schedules(
     ) == {
         "ftl-capability-demand",
         "ftl-creative-learning-demand",
+        "ftl-learning-enablement-demand",
     }
     assert set(ModelPolicy.objects.filter(active=True).values_list("policy_key", flat=True)) == {
         "discovery.standard_web",

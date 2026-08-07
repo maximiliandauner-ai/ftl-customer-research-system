@@ -202,27 +202,36 @@ def test_daily_schedule_is_idempotent_for_one_berlin_window() -> None:
     second = schedule_daily_runs(now)
 
     assert first == second
-    assert len(first) == 2
-    assert TaskOutbox.objects.filter(command_type="discovery.execute").count() == 2
+    assert len(first) == 3
+    assert TaskOutbox.objects.filter(command_type="discovery.execute").count() == 3
 
 
 @pytest.mark.django_db
-def test_creative_learning_query_covers_german_tasks_and_munich_without_company_names() -> None:
+def test_creative_and_learning_queries_are_narrow_and_have_no_company_names() -> None:
     call_command("bootstrap_ftl_platform", verbosity=0)
-    definition = SearchDefinition.objects.get(
+    creative_definition = SearchDefinition.objects.get(
         definition_key="ftl-creative-learning-demand", active=True
     )
+    learning_definition = SearchDefinition.objects.get(
+        definition_key="ftl-learning-enablement-demand", active=True
+    )
 
-    query = render_query(definition)
+    creative_query = render_query(creative_definition)
+    learning_query = render_query(learning_definition)
 
-    assert definition.countries == ["DE", "AT", "CH"]
-    assert '"KI-gestützte Videoproduktion"' in query
-    assert '"digitales Lernen"' in query
-    assert '"München"' in query
-    assert "Werkstudent" in query
-    assert "HOFFMANN" not in query
-    assert '"DE"' not in query
-    assert len(query) <= 2_000
+    assert creative_definition.countries == ["DE", "AT", "CH"]
+    assert '"KI-gestützte Videoproduktion"' in creative_query
+    assert '"Videoproduktion & KI"' in creative_query
+    assert '"digitales Lernen"' not in creative_query
+    assert '"digitales Lernen"' in learning_query
+    assert '"AI tutor"' in learning_query
+    assert '"KI-gestützte Videoproduktion"' not in learning_query
+    for query in (creative_query, learning_query):
+        assert '"München"' in query
+        assert "Werkstudent" in query
+        assert "HOFFMANN" not in query
+        assert '"DE"' not in query
+        assert len(query) <= 2_000
 
 
 @pytest.mark.django_db

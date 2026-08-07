@@ -1,6 +1,6 @@
 # Implementation Status
 
-**Status:** Milestone 11 verified; creative-learning discovery refinement locally verified and production validation pending
+**Status:** Milestone 11 verified; split creative/learning discovery refinement locally verified and production validation pending
 **Knowledge-base release:** 2.1 (audited)  
 **Completed milestone:** 11 — Buyer roles and public/human contact routes  
 **Next in-scope milestone:** 13 — Selective deep research (milestone 12 drafting is deferred by user request)  
@@ -31,7 +31,7 @@
 - Non-destructive `DuplicateRelationship` records exact canonical-URL or verified-company semantic matches without merging/deleting either posting. Posting pages expose deterministic diffs, lifecycle history, duplicate context, absence state, and immutable snapshots.
 - Normalizer policy is v1.1.0. Multiple immutable normalizations may validly derive from the same immutable raw snapshot; uniqueness remains posting/full-hash. Constraint failures fail visibly and never leave a false completed run.
 - Immutable-version `SearchDefinition` records, logical-window-idempotent `DiscoveryRun`/`DiscoveryQuery` records, strict candidate provenance, watched endpoints, durable PostgreSQL execution leases, and daily 06:00 Europe/Berlin scheduling are operational.
-- Discovery prompt/policy v2.1.0 separates the DACH creative-AI/learning-content query family from the existing operations query, searches German and English role/task language, and automatically watches each safely registered active endpoint. Signal detector/ontology v1.1.0 recognizes exact German creative-video and learning-content evidence without employer-specific rules.
+- Discovery prompt/policy v2.1.0 separates DACH creative-video and learning-enablement families from the existing operations query, searches German and English role/task language, and automatically watches each safely registered active endpoint. Signal detector/ontology v1.1.0 recognizes exact German creative-video and learning-content evidence without employer-specific rules.
 - Manual or scheduled discovery first writes its run, audit event, and `discovery.execute` outbox command atomically. Known endpoints create ordinary ID-only source-ingestion commands and reuse the same SSRF-safe fetch, immutable artifact, deterministic parse, lifecycle, and change-event path.
 - The central typed OpenAI Responses adapter uses the current `web_search` tool and strict Pydantic Structured Outputs behind immutable capability/model policies. Response IDs, usage/tool/source metadata, retention, failures, and bounds are durable; model/tool syntax is absent from discovery business services.
 - Per-run, stage daily/monthly, account daily/monthly, and concurrency limits are enforced before provider egress using conservative maximum-cost reservations. Refusal, incomplete, schema/catalog-reference, policy, budget, rate, and provider failures remain explicit and fail only the optional provider path.
@@ -67,7 +67,8 @@
 
 - Focused Docker verification passed 28 discovery/provider/signal/auth/integration/E2E tests. The neutral German creative-learning fixture produces both required capability tags and the rendered query includes Munich/München, part-time/student terms, and exact creative/learning task vocabulary without a company name.
 - Final aggregate `make verify` exited 0: 295 files were formatted/Ruff clean; strict mypy passed across 220 source files; migration drift and deployment checks passed; 161 unit tests passed at 80.10% coverage; 14 PostgreSQL integration tests and 10 real-HTTP E2E tests passed; Compose, document-link, and secret gates were clean.
-- No migration is required. Production bootstrap/deployment and one bounded live OpenAI web-search discovery remain pending; no live provider call was made during deterministic local verification.
+- Production run `91d93764-1fd5-4b36-8f65-111ceba12ba0` made one bounded live OpenAI web-search call and completed with six first-party candidates, six accepted registrations, no unsafe candidates, and eight known endpoints queued. The result omitted HOFFMANN EITLE and exposed intent dilution in the combined creative+learning+tools query.
+- The corrected configuration narrows creative-video terms and moves learning/AI-tutor terms to an independently measurable definition. A subsequent focused 15-test check and full `make verify` both passed. No migration is required; production deployment and a second bounded live creative-video run remain pending.
 
 ### Milestone 11
 
