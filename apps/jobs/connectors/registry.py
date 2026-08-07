@@ -537,8 +537,6 @@ def _detect(endpoint: SourceEndpoint, body: bytes, content_type: str) -> str:
     if explicit:
         return explicit
     host = (urlparse(endpoint.base_url_canonical).hostname or "").casefold()
-    if host.endswith(".jobs.personio.de") or host == "jobs.personio.de":
-        return "personio"
     if host == "boards-api.greenhouse.io":
         return "greenhouse"
     if host == "api.lever.co":
@@ -562,6 +560,8 @@ def _detect(endpoint: SourceEndpoint, body: bytes, content_type: str) -> str:
     if "html" in content_type or b"<html" in leading:
         sample = body[:1_000_000].lower()
         return "json_ld" if re.search(rb"application/ld\+json", sample) else "generic_html"
+    if host.endswith(".jobs.personio.de") or host == "jobs.personio.de":
+        return "personio"
     raise ConnectorError(
         "CONNECTOR_UNSUPPORTED", "The source content has no supported job connector."
     )

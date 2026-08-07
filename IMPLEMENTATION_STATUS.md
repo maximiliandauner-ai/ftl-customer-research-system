@@ -1,6 +1,6 @@
 # Implementation Status
 
-**Status:** Milestone 11 verified; creative/learning/Munich discovery refinement locally verified and production validation pending
+**Status:** Milestone 11 verified; HOFFMANN discovery verified and single-job Personio normalization fix pending production deployment
 **Knowledge-base release:** 2.1 (audited)  
 **Completed milestone:** 11 — Buyer roles and public/human contact routes  
 **Next in-scope milestone:** 13 — Selective deep research (milestone 12 drafting is deferred by user request)  
@@ -70,6 +70,8 @@
 - Production run `91d93764-1fd5-4b36-8f65-111ceba12ba0` made one bounded live OpenAI web-search call and completed with six first-party candidates, six accepted registrations, no unsafe candidates, and eight known endpoints queued. The result omitted HOFFMANN EITLE and exposed intent dilution in the combined creative+learning+tools query.
 - Production run `1ace06cf-0a92-40f6-9157-c7d77706aeac` tested the narrower creative family and returned four candidates, including first-party LUMAS and zooplus roles, but completed partial after reaching its tool limit and still omitted HOFFMANN EITLE.
 - The final local correction adds a Munich/München intent shard and prompt/policy v2.2.0, which begins with employer-site task/location searches and prevents preferred ATS domains from consuming the search as mandatory filters. Focused verification passed 18 tests; final `make verify` passed with 296 formatted/Ruff-clean files, strict mypy across 220 source files, 161 unit tests at 80.11%, 14 integration tests, 10 E2E tests, and clean migration/deploy/Compose/docs/secrets gates. No migration is required; deployment and a bounded Munich run remain pending.
+- Production Munich run `6b22f900-35a1-4605-b33e-9f66ef4267ec` completed with five accepted first-party candidates, no unsafe candidates, and HOFFMANN EITLE as the first result. The safe HTTP fetch returned 200 and stored one immutable source snapshot.
+- The HOFFMANN Personio URL is a single-job HTML page with strict `JobPosting` JSON-LD, not an XML collection. Content-aware connector routing now selects JSON-LD before the Personio hostname fallback while preserving explicit/known API fail-closed behavior. Focused job/signal verification passed 30 tests; final `make verify` passed with 296 files, strict mypy across 220 sources, 162 unit tests at 80.09%, 14 integration tests, 10 E2E tests, and clean remaining gates. Deployment and reparse remain pending.
 
 ### Milestone 11
 

@@ -107,6 +107,18 @@ def test_untrusted_html_is_plaintext_and_scripts_are_dropped() -> None:
     assert "trackingMarker" not in generic.description_text
 
 
+def test_personio_single_job_html_uses_embedded_json_ld_instead_of_xml_feed() -> None:
+    result = parse_source(
+        endpoint("https://acme.jobs.personio.de/job/42?language=de"),
+        (FIXTURES / "json_ld.html").read_bytes(),
+        content_type="text/html; charset=utf-8",
+        encoding="utf-8",
+    )
+
+    assert result.connector_key == "json_ld"
+    assert result.postings[0].title == "Head of Storytelling"
+
+
 def test_personio_rejects_dtd_and_entities() -> None:
     hostile = b'<?xml version="1.0"?><!DOCTYPE x [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><workzag-jobs><position><id>1</id><name>&xxe;</name></position></workzag-jobs>'
 
