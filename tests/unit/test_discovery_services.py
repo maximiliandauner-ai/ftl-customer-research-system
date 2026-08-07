@@ -19,6 +19,7 @@ from apps.discovery.services import (
     DiscoveryLeaseBusy,
     create_discovery_run,
     execute_discovery,
+    render_query,
     schedule_daily_runs,
 )
 from apps.operations.models import (
@@ -201,8 +202,53 @@ def test_daily_schedule_is_idempotent_for_one_berlin_window() -> None:
     second = schedule_daily_runs(now)
 
     assert first == second
-    assert len(first) == 1
-    assert TaskOutbox.objects.filter(command_type="discovery.execute").count() == 1
+    assert len(first) == 2
+    assert TaskOutbox.objects.filter(command_type="discovery.execute").count() == 2
+
+
+@pytest.mark.django_db
+def test_creative_learning_query_covers_german_tasks_and_munich_without_company_names() -> None:
+    call_command("bootstrap_ftl_platform", verbosity=0)
+    definition = SearchDefinition.objects.get(
+        definition_key="ftl-creative-learning-demand", active=True
+    )
+
+    query = render_query(definition)
+
+    assert definition.countries == ["DE", "AT", "CH"]
+    assert '"KI-gestützte Videoproduktion"' in query
+    assert '"digitales Lernen"' in query
+    assert '"München"' in query
+    assert "Werkstudent" in query
+    assert "HOFFMANN" not in query
+    assert '"DE"' not in query
+    assert len(query) <= 2_000
+
+
+@pytest.mark.django_db
+def test_new_discovery_endpoint_becomes_a_watched_source() -> None:
+    call_command("bootstrap_ftl_platform", verbosity=0)
+    _run, outbox = _manual_run()
+    candidate = ProviderDiscoveryCandidateV2(
+        url="https://example.org/jobs/creative-ai-learning",
+        title_hint="Werkstudent Videoproduktion und KI-Content",
+        company_hint="Example Learning GmbH",
+        company_domain_hint="example.org",
+        source_type_hint="job_posting",
+        location_hints=("München",),
+        matched_terms=("KI-gestützte Videoproduktion", "digitales Lernen"),
+        candidate_confidence=0.95,
+        provider_source_reference="source-creative-learning",
+    )
+
+    with override_settings(RUNTIME_SETTINGS=_runtime(openai=True, web=True)):
+        execute_discovery(
+            build_envelope(outbox),
+            provider=FixtureDiscoveryProvider((candidate,)),
+        )
+
+    endpoint = SourceEndpoint.objects.get(base_url_canonical=candidate.url)
+    assert EndpointWatch.objects.filter(source_endpoint=endpoint, active=True).exists()
 
 
 @pytest.mark.django_db

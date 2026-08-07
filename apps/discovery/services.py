@@ -61,7 +61,7 @@ from apps.sources.policy import SourcePolicyError, canonicalize_url, normalize_h
 from apps.sources.services import queue_registered_endpoint, submit_public_source
 
 BERLIN = ZoneInfo("Europe/Berlin")
-DISCOVERY_POLICY_VERSION = "2.0.0"
+DISCOVERY_POLICY_VERSION = "2.1.0"
 DEFAULT_MODEL_POLICY_KEY = "discovery.standard_web"
 DISCOVERY_LEASE_DURATION = timedelta(minutes=5)
 
@@ -242,15 +242,17 @@ def create_discovery_run(
 
 
 def render_query(definition: SearchDefinition) -> str:
-    role_terms = 'job OR career OR hiring OR "open position"'
+    role_terms = (
+        'job OR jobs OR career OR careers OR hiring OR "open position" '
+        "OR Stelle OR Stellenangebot OR Karriere OR Werkstudent OR Teilzeit "
+        "OR freelance OR contractor"
+    )
     capability_terms = " OR ".join(f'"{term}"' for term in definition.positive_terms)
     location_terms = " OR ".join(f'"{item}"' for item in definition.locations)
     query = definition.query_template
     query = query.replace("{{role_terms}}", role_terms)
     query = query.replace("{{capability_terms}}", capability_terms)
     query = query.replace("{{location_terms}}", location_terms)
-    if definition.countries:
-        query += " " + " OR ".join(f'"{country}"' for country in definition.countries)
     for term in definition.negative_terms:
         query += f' -"{term}"'
     return " ".join(query.split())[:2_000]
@@ -567,6 +569,12 @@ def _register_provider_candidates(
         if created:
             found += 1
             first_party_count += int(first_party)
+        registered_endpoint = source_candidate.registered_endpoint
+        if registered_endpoint is not None and registered_endpoint.status == EndpointStatus.ACTIVE:
+            EndpointWatch.objects.get_or_create(
+                source_endpoint=registered_endpoint,
+                defaults={"next_poll_at": timezone.now()},
+            )
     return found, accepted, unsafe, duplicates, first_party_count
 
 

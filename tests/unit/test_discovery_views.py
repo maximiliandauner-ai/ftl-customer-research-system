@@ -19,7 +19,9 @@ def test_researcher_can_queue_and_inspect_manual_discovery() -> None:
         actor=None,
         reason="test_access",
     )
-    definition = SearchDefinition.objects.get(active=True)
+    definition = SearchDefinition.objects.get(
+        definition_key="ftl-creative-learning-demand", active=True
+    )
     client = Client()
     client.force_login(user)
 
@@ -39,7 +41,9 @@ def test_viewer_cannot_trigger_discovery() -> None:
     call_command("bootstrap_ftl_platform", verbosity=0)
     user = User.objects.create_user(username="discovery-viewer")
     assign_team_role(user=user, role=TeamRoleName.VIEWER, actor=None, reason="test_access")
-    definition = SearchDefinition.objects.get(active=True)
+    definition = SearchDefinition.objects.get(
+        definition_key="ftl-creative-learning-demand", active=True
+    )
     client = Client()
     client.force_login(user)
 

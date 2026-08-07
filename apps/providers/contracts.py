@@ -38,7 +38,7 @@ class ProviderDiscoveryOutputV2(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
 
     schema_version: Literal["2.0"] = "2.0"
-    prompt_version: Literal["2.0.0"] = "2.0.0"
+    prompt_version: Literal["2.1.0"] = "2.1.0"
     candidates: tuple[ProviderDiscoveryCandidateV2, ...] = Field(default=(), max_length=200)
     queries_executed: tuple[BoundedText, ...] = Field(default=(), max_length=20)
     warnings: tuple[BoundedText, ...] = Field(default=(), max_length=50)

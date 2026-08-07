@@ -45,8 +45,8 @@ from apps.signals.models import (
 )
 
 EVIDENCE_BUILDER_VERSION = "1.0.0"
-DETECTOR_VERSION = "1.0.2"
-ONTOLOGY_VERSION = "1.0.2"
+DETECTOR_VERSION = "1.1.0"
+ONTOLOGY_VERSION = "1.1.0"
 PROMPT_VERSION = "2.0.0"
 SCHEMA_VERSION = "2.0"
 MAX_EVIDENCE_TEXT = 800
@@ -62,6 +62,14 @@ CAPABILITY_RULES: dict[str, tuple[str, ...]] = {
         "ai-generated video",
         "ai generated video",
         "generative video",
+        "ki-generierte videos",
+        "ki-generierten videos",
+        "ki generierte videos",
+        "ki gestützte videoproduktion",
+        "ki-gestützte videoproduktion",
+        "ki-gestützter videoproduktion",
+        "videoproduktion & ki",
+        "ki-tools zur video- und inhaltserstellung",
         "runway",
         "comfyui",
         "synthetic media",
@@ -72,9 +80,12 @@ CAPABILITY_RULES: dict[str, tuple[str, ...]] = {
         "e-learning",
         "elearning",
         "digital learning",
+        "digitales lernen",
         "instructional design",
         "training materials",
         "academy content",
+        "lern- und kommunikationsformate",
+        "weiterbildungs- und kommunikationszwecke",
     ),
     "workflow_automation": (
         "workflow automation",

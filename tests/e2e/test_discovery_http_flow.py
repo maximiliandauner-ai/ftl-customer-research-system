@@ -19,7 +19,9 @@ def test_researcher_queues_discovery_over_real_http(live_server: object) -> None
     password = uuid4().hex
     user = User.objects.create_user(username="e2e-discovery-operator", password=password)
     assign_team_role(user=user, role=TeamRoleName.RESEARCHER, actor=None, reason="e2e_fixture")
-    definition = SearchDefinition.objects.get(active=True)
+    definition = SearchDefinition.objects.get(
+        definition_key="ftl-creative-learning-demand", active=True
+    )
     session = requests.Session()
     base_url = str(live_server)
 

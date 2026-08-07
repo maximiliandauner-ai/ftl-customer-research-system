@@ -120,6 +120,34 @@ def test_german_capability_language_is_detected_without_translation(tmp_path) ->
 
 
 @pytest.mark.django_db
+def test_german_creative_learning_role_is_detected_without_company_hardcoding(tmp_path) -> None:
+    user = User.objects.create_user(username="signal-creative-learning")
+    description = (
+        "Wir suchen Unterstützung mit KI-gestützter Videoproduktion und modernen Lern- "
+        "und Kommunikationsformaten. Die Rolle erstellt KI-generierte Videos für interne "
+        "Weiterbildung und beobachtet Trends im Bereich digitales Lernen."
+    )
+    poll_ashby(
+        user,
+        "signals.creative-learning:created",
+        ashby_body(
+            description,
+            title="Werkstudent (m/w/d) Videoproduktion & KI - Content im HR",
+        ),
+        tmp_path,
+    )
+
+    execute_only_signal_command()
+
+    signal = SignalEvent.objects.get()
+    assert set(signal.capability_tags) == {
+        "creative_ai_production",
+        "learning_content",
+    }
+    assert signal.company.name == "Acme GmbH"
+
+
+@pytest.mark.django_db
 def test_invalid_evidence_reference_and_commercial_rationale_cannot_persist(tmp_path) -> None:
     user = User.objects.create_user(username="signal-invalid-reference")
     poll_ashby(

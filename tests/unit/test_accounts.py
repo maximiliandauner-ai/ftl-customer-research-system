@@ -27,7 +27,12 @@ def test_bootstrap_is_idempotent_and_seeds_roles_and_schedules(
         )
     assert "5 roles (0 new), 3 schedules, 0 new watches" in capsys.readouterr().out
     assert PeriodicTask.objects.filter(enabled=True).count() == 3
-    assert SearchDefinition.objects.get(active=True).definition_key == "ftl-capability-demand"
+    assert set(
+        SearchDefinition.objects.filter(active=True).values_list("definition_key", flat=True)
+    ) == {
+        "ftl-capability-demand",
+        "ftl-creative-learning-demand",
+    }
     assert set(ModelPolicy.objects.filter(active=True).values_list("policy_key", flat=True)) == {
         "discovery.standard_web",
         "research.standard_web",

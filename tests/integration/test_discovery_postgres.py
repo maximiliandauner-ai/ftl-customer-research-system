@@ -11,7 +11,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.django_db(transaction=True)]
 
 def test_postgres_enforces_one_active_definition_version() -> None:
     call_command("bootstrap_ftl_platform", verbosity=0)
-    active = SearchDefinition.objects.get(active=True)
+    active = SearchDefinition.objects.get(definition_key="ftl-capability-demand", active=True)
 
     with pytest.raises(IntegrityError), transaction.atomic():
         SearchDefinition.objects.create(

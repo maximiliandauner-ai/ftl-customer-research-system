@@ -120,6 +120,8 @@ def test_responses_adapter_uses_current_web_search_and_strict_structured_output(
     assert responses.kwargs["include"] == ["web_search_call.action.sources"]
     assert responses.kwargs["text_format"] is ProviderDiscoveryOutputV2
     assert responses.kwargs["store"] is False
+    assert "Match responsibilities and task language" in responses.kwargs["instructions"]
+    assert "v2.1.0" in responses.kwargs["instructions"]
     call = ProviderCall.objects.get()
     assert call.status == ProviderCallStatus.COMPLETE
     assert call.external_response_id == "resp_123"

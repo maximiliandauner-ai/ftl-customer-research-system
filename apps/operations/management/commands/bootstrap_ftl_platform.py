@@ -292,6 +292,86 @@ class Command(BaseCommand):
             ),
             actor=None,
         )
+        create_definition_version(
+            SearchDefinitionInputV2(
+                definition_key="ftl-creative-learning-demand",
+                name="DACH creative AI and learning demand",
+                description=(
+                    "German and English public employer sources indicating demand for "
+                    "AI-assisted video, learning content, creative production, and internal "
+                    "enablement. Kept separate from the operations query so sparse creative "
+                    "roles are measurable instead of being lost in one oversized OR query."
+                ),
+                query_template="({{role_terms}}) ({{capability_terms}}) ({{location_terms}})",
+                language="de",
+                countries=("DE", "AT", "CH"),
+                locations=(
+                    "München",
+                    "Munich",
+                    "Berlin",
+                    "Hamburg",
+                    "Deutschland",
+                    "Germany",
+                    "Österreich",
+                    "Austria",
+                    "Schweiz",
+                    "Switzerland",
+                    "Remote Germany",
+                    "Remote Europe",
+                    "EMEA",
+                ),
+                capability_clusters=(
+                    "learning_content",
+                    "creative_ai_production",
+                    "generative_video",
+                    "internal_enablement",
+                ),
+                positive_terms=(
+                    "KI-gestützte Videoproduktion",
+                    "KI-generierte Videos",
+                    "Videoproduktion",
+                    "KI Content",
+                    "Lerncontent",
+                    "digitales Lernen",
+                    "interne Weiterbildung",
+                    "learning content",
+                    "generative video",
+                    "AI video",
+                    "creative AI",
+                    "instructional design",
+                    "AI tutor",
+                    "video tutor",
+                    "Runway",
+                    "Kling",
+                    "ComfyUI",
+                    "synthetic media",
+                ),
+                negative_terms=("recruitment agency", "staffing agency", "Personalvermittlung"),
+                preferred_domains=(
+                    "jobs.personio.com",
+                    "boards.greenhouse.io",
+                    "jobs.lever.co",
+                    "jobs.ashbyhq.com",
+                ),
+                excluded_domains=(
+                    "linkedin.com",
+                    "xing.com",
+                    "facebook.com",
+                ),
+                source_type_filters=(
+                    "job_posting",
+                    "career_page",
+                    "personio",
+                    "greenhouse",
+                    "lever",
+                    "ashby",
+                ),
+                schedule_key="daily_morning",
+                max_candidates=50,
+                lookback_days=45,
+            ),
+            actor=None,
+        )
         now = timezone.now()
         watch_count = 0
         for endpoint in SourceEndpoint.objects.filter(status=EndpointStatus.ACTIVE):

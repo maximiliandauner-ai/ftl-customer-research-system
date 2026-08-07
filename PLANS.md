@@ -1,5 +1,31 @@
 # Implementation Plan
 
+**Selected milestone:** Milestone 5 production refinement — DACH creative-AI and learning discovery recall
+**Visible outcome:** Daily and manual discovery use a separate, measurable German/English creative-learning search family that can find HOFFMANN-EITLE-like public roles by task language, safely fetch and monitor them, and classify exact German creative/learning evidence without hardcoding a company.
+**Plan opened:** 2026-08-07
+**Predecessor:** Milestone 11 remains verified; this is a bounded correction to the already-deployed milestone-5 policy.
+
+## Active refinement plan
+
+- Specifications: `08_SEARCH_DEFINITIONS_AND_DISCOVERY.md`, `11_SIGNAL_DETECTION_AGENT.md`, `24_CELERY_ORCHESTRATION_AND_SCHEDULING.md`, `25_OPENAI_CLIENT_MODEL_ROUTING_AND_COSTS.md`, `28_TESTING_EVALUATION_AND_QUALITY_GATES.md`, `33_AGENT_PROMPT_ENGINEERING_STANDARD.md`, and binding audit corrections in `32`.
+- Finding: production had one English operations-focused definition. Its only live query did not contain creative-video, learning-content, German part-time, or Munich vocabulary, despite the normative specification requiring that query family.
+- Owned change: a second immutable `SearchDefinition`, discovery prompt/policy v2.1.0, German/English role/task query rendering, automatic watches for registered discovery endpoints, and signal ontology/detector v1.1.0 with exact German creative-learning phrases.
+- Failure/security: candidates remain non-evidence until isolated safe fetch and deterministic parse; excluded domains, budgets, strict provider source references, SSRF checks, immutable artifacts, and replay-safe outbox behavior remain unchanged. Separate query families make cost/yield measurable; two scheduled definitions reserve at most USD 1.00/day before later policy tuning.
+- Data/rollback: no schema migration. Bootstrap appends/activates immutable policy records and watches existing active endpoints. Rollback deactivates the creative-learning definition without deleting candidates, artifacts, jobs, signals, or audit history.
+- Validation: focused Docker tests, full `make verify`, bootstrap idempotency, production Compose deployment, one bounded live manual discovery, downstream source/job/signal inspection, and healthy worker/readiness checks.
+- Stopping condition: the live definition is active, HOFFMANN-EITLE-like terms are present without a company name, a bounded live run is observable, registered endpoints are watched, and all Docker gates pass.
+
+No new ADR is required: this implements the already-specified creative/learning query family and milestone-5 acceptance behavior.
+
+## Locally verified refinement checkpoint
+
+- Discovery prompt/policy v2.1.0 and signal detector/ontology v1.1.0 are implemented. The neutral German fixture produces both `creative_ai_production` and `learning_content`, and the search fixture proves the required vocabulary is rendered without naming a target employer.
+- Focused Docker verification passed 28 discovery/provider/signal/auth/integration/E2E tests.
+- Final aggregate `make verify` exited 0: 295 files were formatted/Ruff clean; strict mypy passed across 220 source files; migration drift and production deployment checks passed; 161 unit tests passed at 80.10% coverage; 14 PostgreSQL integration tests and 10 real-HTTP E2E tests passed; Compose, document-link, and secret gates were clean.
+- No schema migration is required. Production deployment, idempotent bootstrap, one bounded live provider run, and downstream endpoint/job/signal inspection remain before the refinement stopping condition is met.
+
+## Prior milestone 11 plan and checkpoint
+
 **Selected milestone:** 11 — Buyer roles and public/human contact routes  
 **Visible outcome:** An approved current solution and completed asset match can produce evidence-bound buyer-role categories, scan only registered official public sources through the SSRF-safe fetcher for explicitly published contact routes, preserve encrypted route values and exact provenance, and require separate human eligibility/legal review and exact target selection. Buyer roles, people, observations, routes, deliverability, suppression, and recommendation remain independent. Email drafting and sending remain out of scope.  
 **Plan opened:** 2026-08-06  
