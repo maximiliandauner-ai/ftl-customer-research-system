@@ -17,7 +17,7 @@
 
 No new ADR is required: this implements the already-specified creative/learning query family and milestone-5 acceptance behavior.
 
-## Locally verified refinement checkpoint
+## Verified production refinement checkpoint
 
 - Discovery prompt/policy v2.1.0 and signal detector/ontology v1.1.0 are implemented. The neutral German fixture produces both `creative_ai_production` and `learning_content`, and the search fixture proves the required vocabulary is rendered without naming a target employer.
 - Focused Docker verification passed 28 discovery/provider/signal/auth/integration/E2E tests.
@@ -26,7 +26,9 @@ No new ADR is required: this implements the already-specified creative/learning 
 - The split creative-video run (`1ace06cf-0a92-40f6-9157-c7d77706aeac`) returned four candidates including strong current LUMAS and zooplus roles, but stopped partial after consuming its tool calls on domain/geographic breadth and still omitted HOFFMANN EITLE.
 - Prompt/policy v2.2.0 now starts with employer-site task/location passes, limits zero-yield ATS-only passes, and treats preferred ATS domains as URL preferences. A separate Munich/München shard protects sparse local role recall. Focused verification passed 18 tests and the full gate passed with 296 files, 161 unit tests at 80.11% coverage, 14 integration tests, and 10 E2E tests. Deployment and one bounded Munich run remain.
 - Production Munich run `6b22f900-35a1-4605-b33e-9f66ef4267ec` completed with five accepted, first-party, safe candidates and found HOFFMANN EITLE first, using no employer name in the definition or prompt. Its source fetched successfully and persisted an immutable snapshot.
-- The live result exposed a connector-routing edge case: single-job Personio pages are HTML with embedded `JobPosting` JSON-LD, while the hostname rule previously selected the Personio XML-feed parser. Content-aware routing now selects strict JSON-LD for that HTML without weakening known API schema-failure behavior. Focused job/signal verification passed 30 tests; final `make verify` passed with 162 unit tests at 80.09%, 14 integration tests, and 10 E2E tests. Deployment, audited reparse, and live signal inspection remain.
+- The live result exposed a connector-routing edge case: single-job Personio pages are HTML with embedded `JobPosting` JSON-LD, while the hostname rule previously selected the Personio XML-feed parser. Content-aware routing now selects strict JSON-LD for that HTML without weakening known API schema-failure behavior. The audited reparse created the canonical HOFFMANN posting, and a regression fix now emits the first `created` event when a reparse creates a posting instead of suppressing the downstream pipeline.
+- Final aggregate `make verify` exited 0: 296 files were formatting/Ruff clean; strict mypy passed across 220 source files; migration drift and production deployment checks passed; 163 unit tests passed at 80.17% coverage; 14 PostgreSQL integration tests and 10 real-HTTP E2E tests passed; Compose, document-link, and secret gates were clean.
+- Production runs on image `ftl-opportunity-intelligence:git-cbc14143d2419b2823dbbf7b476a7cdd4b1db847`; the explicit release migration reported no pending migrations and readiness returned HTTP 200. HOFFMANN EITLE now has a persisted open part-time/intern posting, an active `capability_hiring` signal tagged `creative_ai_production` and `learning_content` at 0.950 confidence, a completed deterministic signal assessment, and an active `research_eligible` opportunity scored 56 with 0.670 coverage. No related outbox command remains pending.
 
 ## Prior milestone 11 plan and checkpoint
 

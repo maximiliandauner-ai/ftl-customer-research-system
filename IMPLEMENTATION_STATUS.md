@@ -1,6 +1,6 @@
 # Implementation Status
 
-**Status:** Milestone 11 verified; HOFFMANN discovery verified and single-job Personio normalization fix pending production deployment
+**Status:** Milestone 11 verified; HOFFMANN creative-learning discovery refinement verified in production
 **Knowledge-base release:** 2.1 (audited)  
 **Completed milestone:** 11 — Buyer roles and public/human contact routes  
 **Next in-scope milestone:** 13 — Selective deep research (milestone 12 drafting is deferred by user request)  
@@ -71,7 +71,9 @@
 - Production run `1ace06cf-0a92-40f6-9157-c7d77706aeac` tested the narrower creative family and returned four candidates, including first-party LUMAS and zooplus roles, but completed partial after reaching its tool limit and still omitted HOFFMANN EITLE.
 - The final local correction adds a Munich/München intent shard and prompt/policy v2.2.0, which begins with employer-site task/location searches and prevents preferred ATS domains from consuming the search as mandatory filters. Focused verification passed 18 tests; final `make verify` passed with 296 formatted/Ruff-clean files, strict mypy across 220 source files, 161 unit tests at 80.11%, 14 integration tests, 10 E2E tests, and clean migration/deploy/Compose/docs/secrets gates. No migration is required; deployment and a bounded Munich run remain pending.
 - Production Munich run `6b22f900-35a1-4605-b33e-9f66ef4267ec` completed with five accepted first-party candidates, no unsafe candidates, and HOFFMANN EITLE as the first result. The safe HTTP fetch returned 200 and stored one immutable source snapshot.
-- The HOFFMANN Personio URL is a single-job HTML page with strict `JobPosting` JSON-LD, not an XML collection. Content-aware connector routing now selects JSON-LD before the Personio hostname fallback while preserving explicit/known API fail-closed behavior. Focused job/signal verification passed 30 tests; final `make verify` passed with 296 files, strict mypy across 220 sources, 162 unit tests at 80.09%, 14 integration tests, 10 E2E tests, and clean remaining gates. Deployment and reparse remain pending.
+- The HOFFMANN Personio URL is a single-job HTML page with strict `JobPosting` JSON-LD, not an XML collection. Content-aware connector routing now selects JSON-LD before the Personio hostname fallback while preserving explicit/known API fail-closed behavior. The production reparse persisted the canonical posting, and a regression-tested lifecycle correction now records `created` when a reparse creates the first posting so signal continuation is not lost.
+- Final aggregate `make verify` exited 0: 296 files were formatting/Ruff clean; strict mypy passed across 220 source files; migration drift and production deployment checks passed; 163 unit tests passed at 80.17% coverage; 14 PostgreSQL integration tests and 10 real-HTTP E2E tests passed; Compose, document-link, and secret gates were clean.
+- Production is healthy on image `ftl-opportunity-intelligence:git-cbc14143d2419b2823dbbf7b476a7cdd4b1db847`; the explicit release operation found no pending migrations and readiness returned HTTP 200. HOFFMANN EITLE has an open canonical job, a completed detection attempt, one active 0.950-confidence capability-hiring signal tagged `creative_ai_production` and `learning_content`, a completed deterministic assessment, and an active `research_eligible` opportunity with priority 56 and 0.670 score coverage. All related outbox commands completed.
 
 ### Milestone 11
 
@@ -187,7 +189,7 @@
 
 ## Provider-call status
 
-No live OpenAI calls were performed. Discovery and standard-research adapter operations are exercised with deterministic fakes; feature flags and the absent runtime credential keep live web discovery/research disabled. Signal detection/classification/scoring, solution/asset matching, and buyer-role inference remain deterministic. Public HTTPS job sources were fetched only through the safe-fetch adapter. The contact scanner is implemented, fixture-verified, protected by generated local keys, and enabled for explicit eligible requests; no live contact request was submitted at this checkpoint. Email integration, reply ingestion, JavaScript-browser scraping, and first-contact sending remain disabled.
+Three bounded live standard OpenAI web-search discovery calls were performed for this production refinement: the initial combined family, the split creative family, and the final Munich intent shard. No extended/deep-research call was performed. All remaining automated verification used deterministic fixtures. Signal detection/classification/scoring, solution/asset matching, and buyer-role inference remain deterministic. Public HTTPS job sources were fetched only through the safe-fetch adapter. No live contact request was submitted at this checkpoint. Email integration, reply ingestion, JavaScript-browser scraping, and first-contact sending remain disabled.
 
 ## Open work and risks
 
@@ -195,6 +197,7 @@ No live OpenAI calls were performed. Discovery and standard-research adapter ope
 - Standard public-web research still requires explicitly enabling reviewed OpenAI policies and supplying a real credential; the default/offline test configuration cannot create real company dossiers. Contact scanning additionally requires separate 32-byte encryption/HMAC keys and scans only registered official sources from a completed dossier, never arbitrary or private pages.
 - The starter asset catalog is intentionally empty because no reviewed FTL collateral metadata was supplied. Editors must add real public assets with review and link-health metadata, sync a new release, and explicitly activate it before those assets can be selected.
 - Endpoint robots outcome remains `unknown` unless explicitly supplied. Documented public APIs are submitted intentionally, but per-registrable-domain leases/rate scheduling and automated robots classification still need enforcement before broad discovery.
+- Standard web discovery improves routine recall but cannot prove completeness. Milestone 13 should add a bounded weekly/on-demand deep-research discovery audit that accepts the task/location/hours brief plus already-known companies and URLs, returns only candidate official sources, and routes every candidate through the existing safe-fetch, evidence, signal, and PostgreSQL pipeline.
 - Old disposable Redis binding keys from the pre-milestone-1 queue topology remain in the local named volume because destructive cleanup was prohibited. Versioned `ftl.v1.*` exchanges isolate them; a fresh command was observed exactly once after restart. ADR-004 records the migration policy.
 - Local development backups are unencrypted. Production rollout must enable encrypted backup storage and complete the server restore rehearsal in milestone 15.
 - The temporary browser-QA operator is deactivated and made unusable at the final checkpoint. No real production operator, production domain, credential, or TLS certificate is provisioned.
