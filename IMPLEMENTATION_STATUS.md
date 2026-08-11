@@ -67,7 +67,7 @@
 
 - The production Caddy proxy remains the only service that publishes ports 80/443 and retains its existing certificate volumes.
 - The proxy joins the existing private `backend` network and the external `ftl-edge` network. PostgreSQL, Redis, Django, Celery workers, and Beat remain on `backend` only.
-- The production Caddyfile adds `ftl.vision`, a permanent path/query-preserving `www.ftl.vision` redirect, and keeps `{$PUBLIC_DOMAIN}` routed to `web:8000`.
+- The production Caddyfile adds `ftl.vision`, an explicit HTTP 308 path/query-preserving `www.ftl.vision` redirect, and keeps `{$PUBLIC_DOMAIN}` routed to `web:8000`.
 - The public website supplies its own nonce-based route CSP; the shared edge supplies transport and common security headers.
 - Validation consists of rendered Compose policy checks, Caddy configuration validation, homepage readiness over `ftl-edge`, TLS/redirect probes for both homepage names, and an immediate regression probe for `opportunities.ftl.vision`.
 

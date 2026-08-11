@@ -15,7 +15,7 @@
 
 www.ftl.vision {
 	import common_security
-	redir https://ftl.vision{uri} permanent
+	redir https://ftl.vision{uri} 308
 }
 
 ftl.vision {
