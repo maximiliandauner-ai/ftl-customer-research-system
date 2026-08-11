@@ -510,3 +510,37 @@ None.
 - Background Mode/ZDR is modeled as a provider capability with `store=false` support and a short reverified retrieval window, not a categorical incompatibility.
 - Contact routes now record public versus human origin; public extraction cannot infer warm introductions or existing relationships.
 - Outreach is represented as exact-bound content units and rendered deterministically before review/approval.
+
+### ADR-008 — Keep one Caddy edge while isolating the public website
+
+**Date:** 2026-08-11
+**Status:** accepted
+**Owners:** FTL engineering
+**Related specifications:** `04_DOCKER_LOCAL_DEVELOPMENT.md`, `26_OBSERVABILITY_AND_OPERATIONS.md`, `29_BACKUP_RESTORE_AND_SERVER_MIGRATION.md`
+**Related implementation:** `compose.prod.yaml`, `docker/Caddyfile.prod`
+
+#### Context
+
+The production host already has one healthy Caddy container with durable certificate volumes and exclusive ownership of ports 80/443 for `opportunities.ftl.vision`. The new public website is a separate portable Docker application and must not gain access to the customer platform's database, broker, workers, or private application network.
+
+#### Decision
+
+Retain the existing Caddy container as the only public edge. Add an external Docker network named `ftl-edge`; attach only Caddy and the public website to it. Caddy remains attached to `backend` for the existing `web:8000` upstream. Route `ftl.vision` to `ftl-webpage:8080`, permanently redirect `www.ftl.vision` to the apex while preserving the request URI, and retain `{$PUBLIC_DOMAIN}` for the customer application.
+
+#### Alternatives considered
+
+- Publish a second Caddy or website port on the host, rejected because ports 80/443 already have one owner and duplicate edge/certificate state increases operational risk.
+- Attach the website to `backend`, rejected because the public application does not need reachability to customer-system services.
+- Move the customer application behind the website's Compose project, rejected because website releases and rollbacks must not control customer data or workers.
+
+#### Consequences
+
+The two applications release independently while sharing certificates, redirects, compression, and transport headers at one reproducible edge. A routine website rollback recreates only the website container. Caddy remains a shared dependency and its configuration is validated before a proxy-only recreation.
+
+#### Validation
+
+Render all production Compose layers, validate the Caddyfile inside the pinned Caddy image, verify website readiness over `ftl-edge`, verify both homepage certificates and the `www` redirect, and confirm `opportunities.ftl.vision` before and after the edge change.
+
+#### Supersedes / superseded by
+
+None.

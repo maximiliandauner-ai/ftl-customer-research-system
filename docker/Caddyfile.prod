@@ -1,11 +1,38 @@
+{
+	email contact@ftl.vision
+}
+
+(common_security) {
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		-Server
+	}
+}
+
+www.ftl.vision {
+	import common_security
+	redir https://ftl.vision{uri} permanent
+}
+
+ftl.vision {
+	import common_security
+	encode zstd gzip
+
+	reverse_proxy ftl-webpage:8080 {
+		health_uri /health/ready
+		health_interval 30s
+		health_timeout 5s
+		lb_try_duration 5s
+		flush_interval -1
+	}
+}
+
 {$PUBLIC_DOMAIN} {
-    encode zstd gzip
-    reverse_proxy web:8000
-    header {
-        X-Content-Type-Options nosniff
-        X-Frame-Options DENY
-        Referrer-Policy strict-origin-when-cross-origin
-        Strict-Transport-Security "max-age=31536000; includeSubDomains"
-        -Server
-    }
+	import common_security
+	encode zstd gzip
+	reverse_proxy web:8000
 }

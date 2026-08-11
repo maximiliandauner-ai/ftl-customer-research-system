@@ -1,10 +1,10 @@
 # Implementation Status
 
-**Status:** Milestone 11 verified; HOFFMANN creative-learning discovery refinement verified in production
+**Status:** Milestone 11 verified; HOFFMANN creative-learning discovery refinement verified in production; shared Caddy edge prepared for the public FTL website
 **Knowledge-base release:** 2.1 (audited)  
 **Completed milestone:** 11 — Buyer roles and public/human contact routes  
 **Next in-scope milestone:** 13 — Selective deep research (milestone 12 drafting is deferred by user request)  
-**Last updated:** 2026-08-07
+**Last updated:** 2026-08-11
 
 ## Verified software
 
@@ -62,6 +62,14 @@
 - Public versus human origin, observation, freshness, deliverability, outreach eligibility, legal review, recommendation, suppression, and selection are independent. Human routes require actor/provenance; an exact route can be selected only after human eligibility/legal approval and a synchronous suppression check. The authenticated contact workspace exposes masked provenance and audit state while creating no packet, draft, email, or send.
 
 ## Executed checkpoint evidence
+
+### Public website shared-edge integration
+
+- The production Caddy proxy remains the only service that publishes ports 80/443 and retains its existing certificate volumes.
+- The proxy joins the existing private `backend` network and the external `ftl-edge` network. PostgreSQL, Redis, Django, Celery workers, and Beat remain on `backend` only.
+- The production Caddyfile adds `ftl.vision`, a permanent path/query-preserving `www.ftl.vision` redirect, and keeps `{$PUBLIC_DOMAIN}` routed to `web:8000`.
+- The public website supplies its own nonce-based route CSP; the shared edge supplies transport and common security headers.
+- Validation consists of rendered Compose policy checks, Caddy configuration validation, homepage readiness over `ftl-edge`, TLS/redirect probes for both homepage names, and an immediate regression probe for `opportunities.ftl.vision`.
 
 ### Milestone 5 production refinement — local verification
 
