@@ -25,8 +25,8 @@ def test_bootstrap_is_idempotent_and_seeds_roles_and_schedules(
         assert set(group.permissions.values_list("content_type__app_label", "codename")) == set(
             ROLE_PERMISSION_KEYS[role]
         )
-    assert "5 roles (0 new), 3 schedules, 0 new watches" in capsys.readouterr().out
-    assert PeriodicTask.objects.filter(enabled=True).count() == 3
+    assert "5 roles (0 new), 4 schedules, 0 new watches" in capsys.readouterr().out
+    assert PeriodicTask.objects.filter(enabled=True).count() == 4
     assert set(
         SearchDefinition.objects.filter(active=True).values_list("definition_key", flat=True)
     ) == {

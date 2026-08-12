@@ -137,7 +137,8 @@ def test_submission_is_idempotent_and_unsafe_target_never_creates_outbox() -> No
     assert second.created is False
     assert first.candidate.pk == second.candidate.pk
     assert SourceEndpoint.objects.count() == 1
-    assert TaskOutbox.objects.count() == 1
+    assert TaskOutbox.objects.filter(command_type=SOURCE_FETCH_COMMAND_TYPE).count() == 1
+    assert TaskOutbox.objects.filter(command_type="companies.enrich_profile").count() == 1
     assert unsafe.accepted is False
     assert unsafe.candidate.status == CandidateStatus.UNSAFE
     assert unsafe.pipeline_run is None

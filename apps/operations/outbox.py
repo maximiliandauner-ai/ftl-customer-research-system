@@ -16,6 +16,7 @@ from apps.operations.commands import (
     BUYER_ROLES_INFER_COMMAND_TYPE,
     CHECKPOINT_COMMAND_TYPE,
     COMPANIES_AGGREGATE_COMMAND_TYPE,
+    COMPANY_PROFILE_ENRICH_COMMAND_TYPE,
     CONTACT_SOURCE_SCAN_COMMAND_TYPE,
     DISCOVERY_EXECUTE_COMMAND_TYPE,
     JOBS_PARSE_COMMAND_TYPE,
@@ -65,6 +66,10 @@ COMMAND_ROUTES = {
     ),
     SOURCE_FETCH_COMMAND_TYPE: CommandRoute(
         task_name="sources.fetch_public_source",
+        queue="fetch",
+    ),
+    COMPANY_PROFILE_ENRICH_COMMAND_TYPE: CommandRoute(
+        task_name="companies.enrich_profile",
         queue="fetch",
     ),
     JOBS_PARSE_COMMAND_TYPE: CommandRoute(

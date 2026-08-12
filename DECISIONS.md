@@ -19,6 +19,40 @@ superseded
 deprecated
 ```
 
+### ADR-014 — Enrich canonical company profiles from bounded official-site evidence
+
+**Date:** 2026-08-12
+**Status:** accepted
+**Owners:** FTL engineering
+**Related specifications:** `06_DATABASE_SCHEMA_AND_MIGRATIONS.md`, `09_SOURCE_CONNECTORS_AND_FETCHING.md`, `14_COMPANY_RESEARCH_AGENT.md`, `27_SECURITY_PRIVACY_AND_COMPLIANCE.md`
+**Related implementation:** `apps/companies/`, `apps/sources/http.py`, `apps/operations/`
+
+#### Context
+
+Source discovery created provisional company identities and job endpoints, while qualified-opportunity research intentionally stored claims in a separate dossier. Nothing hydrated the canonical company profile fields, and a removed job URL could remain degraded even when the official homepage and imprint were available.
+
+#### Decision
+
+Introduce a narrow deterministic company-profile enrichment stage independent of job normalization and opportunity qualification. It fetches the official domain root and at most four ranked same-registrable-domain imprint/about/company links through the shared SSRF-safe client. It accepts structured Organization JSON-LD and bounded explicit official text, validates the observed identity against the existing company/domain, stores immutable source artifacts and field-level evidence, and fills only supported canonical fields. Existing non-unknown values are treated as manual unless they equal the last automatically applied observation. New domain-backed companies queue enrichment transactionally; a weekly sweep queues profiles without a successful run in 30 days. Broad web search, authenticated professional networks, guessed employee counts, and model inference are excluded.
+
+#### Alternatives considered
+
+- Reuse qualified-opportunity research, rejected because it excludes companies without signals and deliberately does not mutate canonical identity fields.
+- Parse only the submitted job page, rejected because job URLs can disappear and typically omit legal/profile facts.
+- Scrape third-party company databases or infer missing employee ranges, rejected because source policy, access terms, freshness, and evidence quality vary and absent data must remain unknown.
+
+#### Consequences
+
+Most official legal, headquarters, type, industry, and description facts populate without an OpenAI credential. Employee range remains unknown unless an official page explicitly states it. Operators can inspect exact source/method/confidence and rerun enrichment, while failed identity checks and fetches are visible in durable pipeline state.
+
+#### Validation
+
+Fixture tests cover Anyland-like homepage/imprint extraction, same-domain discovery, complete field hydration, identity mismatch, manual-value preservation, transactional scheduling, permissions, replay, and PostgreSQL append-only evidence enforcement.
+
+#### Supersedes / superseded by
+
+None.
+
 ### ADR-013 — Protect literal contact observations with separate encryption and lookup keys
 
 **Date:** 2026-08-06  

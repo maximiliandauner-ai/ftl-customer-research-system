@@ -112,6 +112,26 @@ class Command(BaseCommand):
                 "kwargs": "{}",
             },
         )
+        company_profile_schedule, _created = CrontabSchedule.objects.get_or_create(
+            minute="30",
+            hour="5",
+            day_of_week="1",
+            day_of_month="*",
+            month_of_year="*",
+            timezone="Europe/Berlin",
+        )
+        PeriodicTask.objects.update_or_create(
+            name="FTL weekly company profile refresh",
+            defaults={
+                "task": "companies.schedule_profile_refresh",
+                "interval": None,
+                "crontab": company_profile_schedule,
+                "queue": "maintenance",
+                "enabled": True,
+                "args": "[]",
+                "kwargs": "{}",
+            },
+        )
 
         capability, _created = ModelCapability.objects.update_or_create(
             model_id="gpt-5.6-terra",
@@ -498,6 +518,6 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 "FTL platform policy ready: "
-                f"5 roles ({group_count} new), 3 schedules, {watch_count} new watches."
+                f"5 roles ({group_count} new), 4 schedules, {watch_count} new watches."
             )
         )

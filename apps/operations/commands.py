@@ -1,5 +1,6 @@
 CHECKPOINT_COMMAND_TYPE = "operations.complete_checkpoint"
 SOURCE_FETCH_COMMAND_TYPE = "sources.fetch"
+COMPANY_PROFILE_ENRICH_COMMAND_TYPE = "companies.enrich_profile"
 JOBS_PARSE_COMMAND_TYPE = "jobs.parse"
 DISCOVERY_EXECUTE_COMMAND_TYPE = "discovery.execute"
 SIGNALS_DETECT_COMMAND_TYPE = "signals.detect"

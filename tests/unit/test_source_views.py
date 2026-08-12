@@ -4,10 +4,13 @@ import pytest
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.test import Client
+from django.utils import timezone
 
 from apps.accounts.models import TeamRoleName
 from apps.accounts.services import assign_team_role
-from apps.companies.models import Company, CompanyStatus
+from apps.companies.models import Company, CompanyDomain, CompanyStatus
+from apps.operations.commands import COMPANY_PROFILE_ENRICH_COMMAND_TYPE
+from apps.operations.models import TaskOutbox
 from apps.sources.models import CandidateStatus, SourceCandidate
 
 
@@ -107,3 +110,32 @@ def test_reviewer_cannot_post_source_even_with_a_valid_csrf_session() -> None:
 
     assert response.status_code == 403
     assert SourceCandidate.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_researcher_can_queue_company_enrichment_from_company_detail() -> None:
+    user = role_user("company-enrichment-researcher", TeamRoleName.RESEARCHER)
+    company = Company.objects.create(
+        name="Example Company",
+        normalized_name="example company",
+        status=CompanyStatus.PROVISIONAL,
+    )
+    now = timezone.now()
+    CompanyDomain.objects.create(
+        company=company,
+        hostname_ascii="example.com",
+        registrable_domain="example.com",
+        is_primary=True,
+        first_seen_at=now,
+        last_seen_at=now,
+    )
+    client = Client()
+    client.force_login(user)
+
+    detail = client.get(f"/companies/{company.pk}/")
+    response = client.post(f"/companies/{company.pk}/enrich/")
+
+    assert detail.status_code == 200
+    assert b"Enrich from official site" in detail.content
+    assert response.status_code == 302
+    assert TaskOutbox.objects.filter(command_type=COMPANY_PROFILE_ENRICH_COMMAND_TYPE).count() == 1

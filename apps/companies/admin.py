@@ -4,7 +4,10 @@ from apps.companies.models import (
     Company,
     CompanyAlias,
     CompanyDomain,
+    CompanyFieldObservation,
     CompanyMergeReview,
+    CompanyProfileRun,
+    CompanyProfileSource,
 )
 
 
@@ -35,3 +38,27 @@ class CompanyMergeReviewAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     list_display = ("left_company", "right_company", "match_method", "state", "created_at")
     list_filter = ("state", "match_method")
     readonly_fields = ("id", "created_at", "updated_at")
+
+
+@admin.register(CompanyProfileRun)
+class CompanyProfileRunAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+    list_display = ("company", "status", "field_count", "parser_version", "created_at")
+    list_filter = ("status", "parser_version")
+    search_fields = ("company__name", "idempotency_key")
+    readonly_fields = ("id", "created_at", "updated_at")
+
+
+@admin.register(CompanyProfileSource)
+class CompanyProfileSourceAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+    list_display = ("final_url", "source_kind", "retrieved_at", "size_bytes")
+    list_filter = ("source_kind",)
+    search_fields = ("final_url", "body_sha256")
+    readonly_fields = tuple(field.name for field in CompanyProfileSource._meta.fields)
+
+
+@admin.register(CompanyFieldObservation)
+class CompanyFieldObservationAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+    list_display = ("field_name", "value_text", "confidence", "applied", "created_at")
+    list_filter = ("field_name", "applied", "extraction_method")
+    search_fields = ("value_text", "evidence_excerpt")
+    readonly_fields = tuple(field.name for field in CompanyFieldObservation._meta.fields)

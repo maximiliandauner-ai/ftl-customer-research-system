@@ -1,10 +1,10 @@
 # Implementation Status
 
-**Status:** Milestone 11 verified; HOFFMANN creative-learning discovery refinement verified in production; shared Caddy edge prepared for the public FTL website
+**Status:** Milestone 11 verified; automated source-backed company profile enrichment verified locally; HOFFMANN creative-learning discovery refinement verified in production; shared Caddy edge prepared for the public FTL website
 **Knowledge-base release:** 2.1 (audited)  
 **Completed milestone:** 11 — Buyer roles and public/human contact routes  
 **Next in-scope milestone:** 13 — Selective deep research (milestone 12 drafting is deferred by user request)  
-**Last updated:** 2026-08-11
+**Last updated:** 2026-08-12
 
 ## Verified software
 
@@ -17,6 +17,7 @@
 - Restrained dark responsive UI with semantic structure, visible focus, status text/shapes, reduced-motion handling, and immutable WhiteNoise static assets included in the shared runtime image.
 - CSP, clickjacking, CSRF, secure production cookies, Argon2, allowlisted structured logging, redaction, writable-storage readiness, and provider/outreach feature gates remain fail-closed.
 - Canonical/provisional companies with multiple verified/unverified domains, reviewed aliases, explicit merge-review records, and no name-only or ATS-host auto-merge.
+- Official-site company profile enrichment now starts automatically at source registration, refreshes stale companies weekly, and supports an audited manual action and one-time backfill. Deterministic parsing fills only source-supported legal name, type, controlled industry, headquarters, explicit employee range, and description fields; immutable observations retain source URLs, artifact hashes, excerpts, methods, confidence, and whether each value was applied. Identity mismatch, fetch failure, and absent evidence remain explicit and never become guesses.
 - Public source candidate and endpoint registration, strict typed submission/fetch contracts, immediate submission-time policy rejection, transactional candidate/run/audit/outbox creation, and an ID-only `fetch` queue task.
 - One reviewed HTTPX/httpcore egress adapter with HTTPS/port/userinfo policy, IDNA, controlled DNS, every-answer public-address validation, validated-address TCP pinning with hostname TLS, manual redirect revalidation, no ambient credentials/proxies/cookies, conditional requests, content/byte/time bounds, and safe failure taxonomy.
 - Durable `FetchAttempt` history plus storage-backed immutable `SourceArtifact` and `SourceSnapshot` provenance. PostgreSQL triggers reject artifact/snapshot updates and deletes; no UI/API path renders raw fetched HTML.
@@ -62,6 +63,14 @@
 - Public versus human origin, observation, freshness, deliverability, outreach eligibility, legal review, recommendation, suppression, and selection are independent. Human routes require actor/provenance; an exact route can be selected only after human eligibility/legal approval and a synchronous suppression check. The authenticated contact workspace exposes masked provenance and audit state while creating no packet, draft, email, or send.
 
 ## Executed checkpoint evidence
+
+### Company profile enrichment — local verification
+
+- Additive `companies` migrations 0003–0004 were applied once through the rebuilt release image; idempotent platform bootstrap updated all five role policies and four database-backed schedules. PostgreSQL 18 triggers reject mutation/deletion of profile sources and field observations.
+- The complete Docker verification set passed: 307 files were formatting/Ruff clean; strict mypy passed across 229 source files; migration drift and production deployment checks passed; `make test` passed 171 tests at 80.25% coverage; `make test-integration` passed 15 PostgreSQL tests; `make test-e2e` passed 10 real-HTTP tests; Compose, document-link, whitespace, and secret gates were clean.
+- The local one-time backfill found four eligible companies and queued four ID-only outbox commands. All four were published and processed: two official sites produced partial source-backed profiles, the generic test domain failed identity validation, and one official site returned a controlled HTTP-status failure. No unsupported value was applied.
+- A live safe-fetch/parser probe of Anyland's current homepage and imprint returned HTTP 200 and extracted `Anyland GmbH`, company, `creative_ai_production`, Bremen, DE, and a bounded official description. The submitted historical job endpoint remains independent of this company-level path; employee range stayed unknown because the official pages did not state it.
+- The local database contains no Anyland company; the hosted Anyland record therefore still requires deployment of this release followed by the documented backfill command. Employee range intentionally remains unknown unless an official page states a count or range; no authenticated professional network, inferred headcount, guessed contact, or invented company fact is used.
 
 ### Public website shared-edge integration
 

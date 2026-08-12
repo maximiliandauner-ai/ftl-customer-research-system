@@ -1,8 +1,12 @@
+from typing import Any
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 
 from apps.core.models import TimeStampedModel, UUIDModel
+from apps.operations.models import PipelineRun
 
 
 class CompanyStatus(models.TextChoices):
@@ -51,6 +55,31 @@ class MergeReviewState(models.TextChoices):
     DISMISSED = "dismissed", "Dismissed"
 
 
+class CompanyEnrichmentStatus(models.TextChoices):
+    QUEUED = "queued", "Queued"
+    RUNNING = "running", "Running"
+    COMPLETE = "complete", "Complete"
+    PARTIAL = "partial", "Partial"
+    FAILED = "failed", "Failed"
+
+
+class CompanyProfileSourceKind(models.TextChoices):
+    HOMEPAGE = "homepage", "Homepage"
+    IMPRINT = "imprint", "Imprint / legal notice"
+    ABOUT = "about", "About / company page"
+    OTHER = "other", "Other official page"
+
+
+class CompanyProfileField(models.TextChoices):
+    LEGAL_NAME = "legal_name", "Legal name"
+    COMPANY_TYPE = "company_type", "Company type"
+    INDUSTRY = "industry_key", "Industry"
+    HEADQUARTERS_CITY = "headquarters_city", "Headquarters city"
+    HEADQUARTERS_COUNTRY = "headquarters_country", "Headquarters country"
+    EMPLOYEE_RANGE = "employee_range", "Employee range"
+    DESCRIPTION = "description", "Description"
+
+
 class Company(UUIDModel, TimeStampedModel):
     legal_name = models.TextField(blank=True)
     name = models.TextField()
@@ -92,6 +121,10 @@ class Company(UUIDModel, TimeStampedModel):
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def industry_display(self) -> str:
+        return self.industry_key.replace("_", " ").capitalize() if self.industry_key else ""
 
 
 class CompanyDomain(UUIDModel, TimeStampedModel):
@@ -204,3 +237,159 @@ class CompanyMergeReview(UUIDModel, TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.left_company_id} / {self.right_company_id} / {self.state}"
+
+
+class CompanyProfileRun(UUIDModel, TimeStampedModel):
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.PROTECT,
+        related_name="profile_runs",
+    )
+    pipeline_run = models.OneToOneField(
+        PipelineRun,
+        on_delete=models.PROTECT,
+        related_name="company_profile_run",
+    )
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="requested_company_profile_runs",
+    )
+    status = models.CharField(
+        max_length=16,
+        choices=CompanyEnrichmentStatus.choices,
+        default=CompanyEnrichmentStatus.QUEUED,
+    )
+    parser_version = models.CharField(max_length=32)
+    idempotency_key = models.CharField(max_length=255, unique=True)
+    source_urls = models.JSONField(default=list, blank=True)
+    warnings = models.JSONField(default=list, blank=True)
+    field_count = models.PositiveSmallIntegerField(default=0)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    error_code = models.CharField(max_length=64, blank=True)
+    safe_error_message = models.CharField(max_length=500, blank=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(status__in=CompanyEnrichmentStatus.values),
+                name="companies_profile_run_status_known",
+            )
+        ]
+        permissions = [("request_company_enrichment", "Can request company profile enrichment")]
+
+    def __str__(self) -> str:
+        return f"{self.company_id} / {self.status} / {self.parser_version}"
+
+
+class ImmutableCompanyProfileQuerySet(models.QuerySet[Any]):
+    def update(self, **_kwargs: Any) -> int:
+        raise TypeError("Company profile evidence records are immutable.")
+
+    def delete(self) -> tuple[int, dict[str, int]]:
+        raise TypeError("Company profile evidence records are immutable.")
+
+
+class CompanyProfileSource(UUIDModel):
+    enrichment_run = models.ForeignKey(
+        CompanyProfileRun,
+        on_delete=models.PROTECT,
+        related_name="sources",
+    )
+    source_kind = models.CharField(max_length=16, choices=CompanyProfileSourceKind.choices)
+    requested_url = models.TextField()
+    final_url = models.TextField()
+    canonical_url_sha256 = models.CharField(max_length=64)
+    storage_key = models.TextField(unique=True)
+    body_sha256 = models.CharField(max_length=64)
+    size_bytes = models.PositiveBigIntegerField()
+    content_type = models.CharField(max_length=255)
+    encoding = models.CharField(max_length=64, blank=True)
+    retrieved_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = ImmutableCompanyProfileQuerySet.as_manager()
+
+    class Meta:
+        ordering = ("retrieved_at", "id")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("enrichment_run", "canonical_url_sha256"),
+                name="companies_profile_source_run_url_unique",
+            ),
+            models.CheckConstraint(
+                condition=Q(source_kind__in=CompanyProfileSourceKind.values),
+                name="companies_profile_source_kind_known",
+            ),
+            models.CheckConstraint(
+                condition=Q(size_bytes__gte=1),
+                name="companies_profile_source_size_gte_1",
+            ),
+        ]
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if not self._state.adding:
+            raise ValidationError("CompanyProfileSource records are immutable.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
+        raise TypeError("CompanyProfileSource records are immutable.")
+
+    def __str__(self) -> str:
+        return f"{self.final_url} / {self.body_sha256}"
+
+
+class CompanyFieldObservation(UUIDModel):
+    enrichment_run = models.ForeignKey(
+        CompanyProfileRun,
+        on_delete=models.PROTECT,
+        related_name="field_observations",
+    )
+    source = models.ForeignKey(
+        CompanyProfileSource,
+        on_delete=models.PROTECT,
+        related_name="field_observations",
+    )
+    field_name = models.CharField(max_length=32, choices=CompanyProfileField.choices)
+    value_text = models.TextField()
+    normalized_value = models.TextField()
+    evidence_excerpt = models.CharField(max_length=1_000)
+    evidence_sha256 = models.CharField(max_length=64)
+    extraction_method = models.CharField(max_length=64)
+    confidence = models.DecimalField(max_digits=4, decimal_places=3)
+    applied = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = ImmutableCompanyProfileQuerySet.as_manager()
+
+    class Meta:
+        ordering = ("field_name", "-confidence", "id")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("enrichment_run", "source", "field_name", "evidence_sha256"),
+                name="companies_profile_observation_unique",
+            ),
+            models.CheckConstraint(
+                condition=Q(field_name__in=CompanyProfileField.values),
+                name="companies_profile_field_known",
+            ),
+            models.CheckConstraint(
+                condition=Q(confidence__gte=0) & Q(confidence__lte=1),
+                name="companies_profile_confidence_range",
+            ),
+        ]
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if not self._state.adding:
+            raise ValidationError("CompanyFieldObservation records are immutable.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
+        raise TypeError("CompanyFieldObservation records are immutable.")
+
+    def __str__(self) -> str:
+        return f"{self.enrichment_run_id} / {self.field_name} / {self.value_text}"
