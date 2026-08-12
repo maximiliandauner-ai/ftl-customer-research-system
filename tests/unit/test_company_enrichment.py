@@ -229,7 +229,9 @@ def test_identity_mismatch_fails_without_applying_scraped_fields(tmp_path) -> No
 def test_company_profile_backfill_command_queues_eligible_companies(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    create_company()
+    company = create_company()
+    company.status = CompanyStatus.MERGE_REVIEW
+    company.save(update_fields=("status", "updated_at"))
 
     call_command("backfill_company_profiles", limit=20)
 

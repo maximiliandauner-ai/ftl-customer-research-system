@@ -198,7 +198,11 @@ def schedule_due_company_enrichments(*, limit: int = 100) -> tuple[int, int]:
     )
     companies = (
         Company.objects.filter(
-            status__in=(CompanyStatus.ACTIVE, CompanyStatus.PROVISIONAL),
+            status__in=(
+                CompanyStatus.ACTIVE,
+                CompanyStatus.PROVISIONAL,
+                CompanyStatus.MERGE_REVIEW,
+            ),
             domains__isnull=False,
         )
         .annotate(has_fresh_current_profile=Exists(fresh_current_profile))

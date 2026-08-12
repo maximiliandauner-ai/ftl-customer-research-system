@@ -1,6 +1,6 @@
 # Implementation Status
 
-**Status:** Milestone 11 verified; automated source-backed company profile enrichment verified locally; HOFFMANN creative-learning discovery refinement verified in production; shared Caddy edge prepared for the public FTL website
+**Status:** Milestone 11 verified; automated source-backed company profile enrichment deployed and verified in production; HOFFMANN creative-learning discovery refinement verified in production; shared Caddy edge prepared for the public FTL website
 **Knowledge-base release:** 2.1 (audited)  
 **Completed milestone:** 11 — Buyer roles and public/human contact routes  
 **Next in-scope milestone:** 13 — Selective deep research (milestone 12 drafting is deferred by user request)  
@@ -64,13 +64,13 @@
 
 ## Executed checkpoint evidence
 
-### Company profile enrichment — local verification
+### Company profile enrichment — production verification
 
-- Additive `companies` migrations 0003–0004 were applied once through the rebuilt release image; idempotent platform bootstrap updated all five role policies and four database-backed schedules. PostgreSQL 18 triggers reject mutation/deletion of profile sources and field observations.
+- A checksummed production backup was created before deployment. Additive `companies` migrations 0003–0004 were then applied once through the rebuilt release image; idempotent platform bootstrap updated all five role policies and four database-backed schedules. PostgreSQL 18 triggers reject mutation/deletion of profile sources and field observations.
 - The complete Docker verification set passed: 307 files were formatting/Ruff clean; strict mypy passed across 229 source files; migration drift and production deployment checks passed; `make test` passed 171 tests at 80.25% coverage; `make test-integration` passed 15 PostgreSQL tests; `make test-e2e` passed 10 real-HTTP tests; Compose, document-link, whitespace, and secret gates were clean.
-- The local one-time backfill found four eligible companies and queued four ID-only outbox commands. All four were published and processed: two official sites produced partial source-backed profiles, the generic test domain failed identity validation, and one official site returned a controlled HTTP-status failure. No unsupported value was applied.
-- A live safe-fetch/parser probe of Anyland's current homepage and imprint returned HTTP 200 and extracted `Anyland GmbH`, company, `creative_ai_production`, Bremen, DE, and a bounded official description. The submitted historical job endpoint remains independent of this company-level path; employee range stayed unknown because the official pages did not state it.
-- The local database contains no Anyland company; the hosted Anyland record therefore still requires deployment of this release followed by the documented backfill command. Employee range intentionally remains unknown unless an official page states a count or range; no authenticated professional network, inferred headcount, guessed contact, or invented company fact is used.
+- The first production backfill queued all 74 active/provisional companies with eligible domains. All runs settled: 51 produced complete or partial source-backed profiles and 23 failed safely on identity, DNS, HTTP-status, or retry policy without applying unsupported values. The selector also covers merge-review identities so every non-archived company is included in direct registration, backfill, and weekly refresh policy.
+- The production Anyland profile now records `Anyland GmbH`, company, `creative_ai_production`, Bremen, DE, and a bounded official description with immutable field-level provenance from the homepage, imprint, and studio pages. Its historical job endpoint remains independently degraded; company enrichment does not depend on that endpoint.
+- An authenticated production detail-page render returned HTTP 200 and displayed Anyland's legal name, industry, headquarters, and provenance. Employee range intentionally remains unknown because the official pages do not state a count or range; no authenticated professional network, inferred headcount, guessed contact, or invented company fact is used.
 
 ### Public website shared-edge integration
 
