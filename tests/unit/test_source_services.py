@@ -1,5 +1,6 @@
 import hashlib
 from datetime import UTC, datetime
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -27,6 +28,7 @@ from apps.sources.services import (
     RetryableFetchError,
     execute_source_fetch,
     mark_fetch_exhausted,
+    queue_registered_endpoint,
     submit_public_source,
 )
 
@@ -144,6 +146,28 @@ def test_submission_is_idempotent_and_unsafe_target_never_creates_outbox() -> No
     assert unsafe.pipeline_run is None
     assert "prohibited network" in unsafe.candidate.rejection_reason
     assert AuditEvent.objects.filter(action="sources.public_source_rejected").count() == 1
+
+
+@pytest.mark.django_db
+def test_known_endpoint_poll_queues_daily_company_enrichment() -> None:
+    user = User.objects.create_user(username="known-endpoint-poller")
+    with patch("apps.companies.services.schedule_company_enrichment") as schedule:
+        original = submit(user, "sources.manual:known-endpoint")
+        schedule.reset_mock()
+
+        assert original.endpoint is not None
+        result = queue_registered_endpoint(
+            endpoint=original.endpoint,
+            idempotency_key="sources.poll:known-endpoint:2026-08-12",
+            actor=user,
+        )
+
+    assert result.created is True
+    schedule.assert_called_once_with(
+        original.endpoint.company,
+        actor=user,
+        trigger="scheduled",
+    )
 
 
 @pytest.mark.django_db

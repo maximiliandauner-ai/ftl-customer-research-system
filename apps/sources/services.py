@@ -459,6 +459,14 @@ def queue_registered_endpoint(
             reason_key="scheduled_known_endpoint_poll",
             pipeline_run=run,
         )
+        if endpoint.company is not None:
+            from apps.companies.services import schedule_company_enrichment
+
+            schedule_company_enrichment(
+                endpoint.company,
+                actor=actor,
+                trigger=trigger,
+            )
     return SourceSubmissionResult(candidate, endpoint, run, True, True)
 
 
